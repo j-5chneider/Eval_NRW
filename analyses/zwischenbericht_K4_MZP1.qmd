@@ -30,26 +30,207 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r}
+```{r load packages}
+#| echo: false
+
 library(rio)
 library(here)
+library(tidyverse)
 ```
 
 
 
+
+```{r import data sets}
+k1k2_laa_mzp1 <- rio::import(here("data/BilWiss_MZP1.sav"))
+k3_laa <- rio::import(here("data/LAA_K3_2024-04-11.sav")) # K3 der LAA MZP 1 und MZP 2
+
+k4_laa_mzp1 <- rio::import(here("data/LAA_K4_MZP1_2024-04-15.sav")) # K4 der LAA aus MZP 1
+k4_alk_mzp1 <- rio::import(here("data/ALK_K4_MZP1_2024-05-22.sav")) # K4 der ALK aus MZP 1
+k4_sab_mzp1 <- rio::import(here("data/SAB_K4_MZP1_2024-03-11.sav")) # K4 der SAB aus MZP 1
+
+```
+
+Alle genutzten Daten entstammen den MZP 1 der jeweiligen Kohorten.
+
+
+# Data wrangling
+Auswahl der Skalen und wrangling der Daten.
+
+## K1 & K2 LAA
 
 ```{r}
-k4_mzp1_laa <- rio::import(here("data/LAA_K4_150524.sav"))
+k1k2_laa_mzp1 <- k1k2_laa_mzp1 |>
+  dplyr::mutate(kohorte = as.factor(kohorte)) |>
+  dplyr::select(kohorte,
+                UL_1,
+                LE_1,
+                DE_1,
+                BT_1,
+                SP_1,
+                LB_1,
+                entu_1,
+                entf_1,
+                efft_1,
+                ee_1,
+                engak_1) |>
+  dplyr::rename_with(~ gsub("_1", "", .x, fixed = TRUE)) |> # Löschen von _01 in den Variablennamen
+  dplyr::rename(c(BilWiss_ul = UL,         # umbenennen der Variblen für das Matching
+                  BilWiss_le = LE,
+                  BilWiss_de = DE,
+                  BilWiss_bt = BT,
+                  BilWiss_sb = SP,
+                  BilWiss_lb = LB,
+                  bel = ee,
+                  aen = engak)) |>
+  dplyr::mutate(#kohorte = as.factor("1+2"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
+
+
 ```
+
+
+
+## K3 LAA
+
+```{r}
+k3_laa <- k3_laa |>
+  dplyr::select(Score_Kurz_01,               # Auswahl der Variablen
+                Score_BT_KT_01,
+                Score_DE_KT_01,
+                Score_LB_KT_01,
+                Score_LE_KT_01,
+                Score_SB_KT_01,
+                Score_UN_KT_01,
+                tp_01,
+                entu_01,
+                entf_01,
+                efft_01,
+                rfbe_01,
+                meko_1_01 : meko_7_01,
+                mekos_01,
+                bel_01,
+                aen_01,
+                zfr_01,
+                uebr_01,
+                uebk_01) |>
+  dplyr::rename_with(~ gsub("_01", "", .x, fixed = TRUE)) |> # Löschen von _01 in den Variablennamen
+  dplyr::rename(c(BilWiss_kurz = Score_Kurz,         # umbenennen der Variblen für das Matching
+                  BilWiss_ul = Score_UN_KT,
+                  BilWiss_le = Score_LE_KT,
+                  BilWiss_de = Score_DE_KT,
+                  BilWiss_bt = Score_BT_KT,
+                  BilWiss_sb = Score_SB_KT,
+                  BilWiss_lb = Score_LB_KT)) |>
+  dplyr::mutate(kohorte = as.factor("3"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
+```
+
+## K4 LAA
+
+```{r}
+k4_laa_mzp1 <- k4_laa_mzp1 |>
+  dplyr::select(Score_Kurz_01K4,             # Auswahl der Variablen
+                Score_BT_KT_01K4,
+                Score_DE_KT_01K4,
+                Score_LB_KT_01K4,
+                Score_LE_KT_01K4,
+                Score_SB_KT_01K4,
+                Score_UN_KT_01K4,
+                tp_01K4,
+                entu_01K4,
+                entf_01K4,
+                efft_01K4,
+                rfbe_01K4,
+                meko_1_01K4 : meko_7_01K4,
+                mekos_01K4,
+                tpkcon_score_01K4,
+                tpksit_score_01K4,
+                tpkpot_score_01K4,
+                tpksup_score_01K4,
+                tpksit_score_av_01K4,
+                tpksit_score_tb_01K4,
+                tpksit_score_aa_01K4,
+                bel_01K4,
+                aen_01K4,
+                zfr_01K4,
+                palsma_01K4,
+                uebr_01K4,
+                uebk_01K4,
+                ub_8_01K4,
+                ub_3_01K4,
+                ub_7_01K4) |>
+  dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(c(BilWiss_kurz = Score_Kurz,         # umbenennen der Variblen für das Matching
+                  BilWiss_ul = Score_UN_KT,
+                  BilWiss_le = Score_LE_KT,
+                  BilWiss_de = Score_DE_KT,
+                  BilWiss_bt = Score_BT_KT,
+                  BilWiss_sb = Score_SB_KT,
+                  BilWiss_lb = Score_LB_KT)) |>
+  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
+```
+
+## K4 ALK
+
+```{r}
+k4_alk_mzp1 <- k4_alk_mzp1 |>
+  dplyr::select(AUNLT_01K4,             # Auswahl der Variablen
+                INNO_01K4,
+                EE_01K4,
+                ENGA_01K4,
+                ZFR_01K4,
+                QUIT_01K4,
+                # LZ_01K4,   # In der Skalendoku aber nicht im Datensatz
+                eignp_01K4,
+                KOOP_01K4,
+                SOZ_01K4) |>
+  dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(KOZA = KOOP) |>
+  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("alk"))   # Variable zur Unterscheidung der Gruppen
+```
+
+## K4 SAB
+
+```{r}
+k4_sab_mzp1 <- k4_sab_mzp1 |>
+  dplyr::select(AUNLT_01K4,             # Auswahl der Variablen
+                AUNL_01K4,
+                TPZU_01K4,
+                INNO_01K4,
+                EXKO_01K4,
+                EE_01K4,
+                ENGA_01K4,
+                ZFR_01K4,
+                QUIT_01K4,
+                SExMPART_01K4,
+                LZ_01K4,
+                eignp_01K4,
+                KOZA_01K4,
+                SOZ_01K4,
+                Filterfrage_01K4) |>
+  dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("sab"))   # Variable zur Unterscheidung der Gruppen
+
+
+```
+
+# Matching
+
+```{r}
+nrw <- dplyr::bind_rows(k1k2_laa_mzp1,
+                        k3_laa,
+                        k4_laa_mzp1,
+                        k4_alk_mzp1,
+                        k4_sab_mzp1)
+```
+
 
 
 # Computational environment
-
-## R Version
-
-```{r}
-R.Version()
-```
 
 ## Packages
 
@@ -57,9 +238,10 @@ R.Version()
 installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
 ```
 
+## R Version
 
 ```{r}
-installed.packages()
+R.Version()
 ```
 
 
