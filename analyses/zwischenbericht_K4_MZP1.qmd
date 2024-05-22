@@ -1,0 +1,65 @@
+---
+title: "Zwischenbericht MSB"
+subtitle: ""
+author:
+  - name: "Jürgen Schneider"
+    email: "ju.schneider@dipf.de"
+    affiliation: "DIPF"
+    correspondence: true
+date: "`r Sys.Date()`" # inserts the date of compiling
+editor: source
+execute:
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  cache: false # true will prevent embed-resources
+format: 
+  html:
+    theme: ceruleanc
+    number-sections: true
+    fontsize: 0.85em
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    embed-resources: true # will make standalone html file
+    code-fold: show
+    code-tools: true
+    code-link: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(rio)
+library(here)
+```
+
+
+
+
+```{r}
+k4_mzp1_laa <- rio::import(here("data/LAA_K4_150524.sav"))
+```
+
+
+# Computational environment
+
+## R Version
+
+```{r}
+R.Version()
+```
+
+## Packages
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+
+
+```{r}
+installed.packages()
+```
+
+
