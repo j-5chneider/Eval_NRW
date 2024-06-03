@@ -23,7 +23,7 @@ format:
     toc-location: left
     toc-depth: 3
     embed-resources: true # will make standalone html file
-    code-fold: show
+    code-fold: true
     code-tools: true
     code-link: true
 editor_options: 
@@ -36,31 +36,40 @@ editor_options:
 library(rio)
 library(here)
 library(tidyverse)
+library(Hmisc)
+library(psych)
+library(ggpubr)
 ```
 
 
+# Preparation
 
+::: panel-tabset
+
+## Import data
 
 ```{r import data sets}
-k1k2_laa_mzp1 <- rio::import(here("data/BilWiss_MZP1.sav"))
+# k1k2 <- rio::import(here("data/07_LSI_MZP123456_Lehramtneu_UTF-8.csv"))
+k1k2 <- rio::import(here("data/07_LSI_MZP123456_Lehramtneu_Unicode.sav"))
+# k1k2_laa_mzp1 <- rio::import(here("data/BilWiss_MZP1.sav"))
+
 k3_laa <- rio::import(here("data/LAA_K3_2024-04-11.sav")) # K3 der LAA MZP 1 und MZP 2
 
 k4_laa_mzp1 <- rio::import(here("data/LAA_K4_MZP1_2024-04-15.sav")) # K4 der LAA aus MZP 1
 k4_alk_mzp1 <- rio::import(here("data/ALK_K4_MZP1_2024-05-22.sav")) # K4 der ALK aus MZP 1
 k4_sab_mzp1 <- rio::import(here("data/SAB_K4_MZP1_2024-03-11.sav")) # K4 der SAB aus MZP 1
-
 ```
 
 Alle genutzten Daten entstammen den MZP 1 der jeweiligen Kohorten.
 
 
-# Data wrangling
+## Data wrangling
 Auswahl der Skalen und wrangling der Daten.
 
-## K1 & K2 LAA
+### K1 & K2 LAA
 
 ```{r}
-k1k2_laa_mzp1 <- k1k2_laa_mzp1 |>
+k1k2 <- k1k2 |>
   dplyr::mutate(kohorte = as.factor(kohorte)) |>
   dplyr::select(kohorte,
                 UL_1,
@@ -87,11 +96,37 @@ k1k2_laa_mzp1 <- k1k2_laa_mzp1 |>
                 gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
 
 
+
+# k1k2_laa_mzp1 <- k1k2_laa_mzp1 |>
+#   dplyr::mutate(kohorte = as.factor(kohorte)) |>
+#   dplyr::select(kohorte,
+#                 UL_1,
+#                 LE_1,
+#                 DE_1,
+#                 BT_1,
+#                 SP_1,
+#                 LB_1,
+#                 entu_1,
+#                 entf_1,
+#                 efft_1,
+#                 ee_1,
+#                 engak_1) |>
+#   dplyr::rename_with(~ gsub("_1", "", .x, fixed = TRUE)) |> # Löschen von _01 in den Variablennamen
+#   dplyr::rename(c(BilWiss_ul = UL,         # umbenennen der Variblen für das Matching
+#                   BilWiss_le = LE,
+#                   BilWiss_de = DE,
+#                   BilWiss_bt = BT,
+#                   BilWiss_sb = SP,
+#                   BilWiss_lb = LB,
+#                   bel = ee,
+#                   aen = engak)) |>
+#   dplyr::mutate(#kohorte = as.factor("1+2"),    # Variable zur Unterscheidung der Kohorten
+#                 gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
 ```
 
 
 
-## K3 LAA
+### K3 LAA
 
 ```{r}
 k3_laa <- k3_laa |>
@@ -126,7 +161,7 @@ k3_laa <- k3_laa |>
                 gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
 ```
 
-## K4 LAA
+### K4 LAA
 
 ```{r}
 k4_laa_mzp1 <- k4_laa_mzp1 |>
@@ -172,11 +207,12 @@ k4_laa_mzp1 <- k4_laa_mzp1 |>
                 gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
 ```
 
-## K4 ALK
+### K4 ALK
 
 ```{r}
 k4_alk_mzp1 <- k4_alk_mzp1 |>
   dplyr::select(AUNLT_01K4,             # Auswahl der Variablen
+                AUNL_01K4,
                 INNO_01K4,
                 EE_01K4,
                 ENGA_01K4,
@@ -184,15 +220,35 @@ k4_alk_mzp1 <- k4_alk_mzp1 |>
                 QUIT_01K4,
                 # LZ_01K4,   # In der Skalendoku aber nicht im Datensatz
                 eignp_01K4,
+                eign_01_01K4,
                 KOOP_01K4,
-                SOZ_01K4) |>
+                SOZ_01K4,
+                ubvorA_1_01K4,
+                ubvorB_1_01K4,
+                ubvorC_1_01K4,
+                ubnach_1_01K4,
+                ubnach_2_01K4,
+                ubnach_3_01K4,
+                ubnach_4_01K4,
+                tpkcon_score_01K4,
+                tpksit_score_01K4,
+                tpkpot_score_01K4,
+                tpksup_score_01K4,
+                tpksit_score_av_01K4,
+                tpksit_score_tb_01K4,
+                tpksit_score_aa_01K4) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
-  dplyr::rename(KOZA = KOOP) |>
+  dplyr::rename(c(KOZA = KOOP,                       # umbenennen der Variblen für das Matching
+                  bel = EE,
+                  aen = ENGA,
+                  zfr = ZFR,
+                  uebr = AUNLT,
+                  uebk = AUNL)) |>
   dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
                 gruppe = as.factor("alk"))   # Variable zur Unterscheidung der Gruppen
 ```
 
-## K4 SAB
+### K4 SAB
 
 ```{r}
 k4_sab_mzp1 <- k4_sab_mzp1 |>
@@ -208,25 +264,2829 @@ k4_sab_mzp1 <- k4_sab_mzp1 |>
                 SExMPART_01K4,
                 LZ_01K4,
                 eignp_01K4,
+                eign_01_01K4,
                 KOZA_01K4,
                 SOZ_01K4,
+                MEKOS_01K4,
+                tpkcon_score_01K4,
+                tpksit_score_01K4,
+                tpkpot_score_01K4,
+                tpksup_score_01K4,
+                tpksit_score_av_01K4,
+                tpksit_score_tb_01K4,
+                tpksit_score_aa_01K4,
                 Filterfrage_01K4) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(c(bel = EE,                       # umbenennen der Variblen für das Matching
+                  aen = ENGA,
+                  zfr = ZFR,
+                  uebr = AUNLT,
+                  uebk = AUNL)) |>
   dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
                 gruppe = as.factor("sab"))   # Variable zur Unterscheidung der Gruppen
 
 
 ```
 
-# Matching
+## Matching
 
 ```{r}
-nrw <- dplyr::bind_rows(k1k2_laa_mzp1,
+nrw <- dplyr::bind_rows(k1k2,
                         k3_laa,
                         k4_laa_mzp1,
                         k4_alk_mzp1,
                         k4_sab_mzp1)
 ```
+:::
+
+
+# Analyses
+
+```{r}
+# Funktion erstellen, die violin plots generiert
+violin_plot <- function (data, variable, vergleich = "kohorte") {
+  ggplot(data, aes_string(x = vergleich, 
+                  y = variable, 
+                  fill = vergleich,
+                  color = vergleich)) +
+    geom_violin(color = "grey", 
+                draw_quantiles = c(0.25, 0.75), 
+                trim  = T,
+                linetype = "dashed",
+                size = 1,
+                alpha = .5) +
+    stat_summary(fun.data = "mean_cl_boot",
+                 size = 1) +
+    scale_fill_viridis_d() +
+    scale_color_viridis_d() +
+    theme_light() +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank())
+}
+```
+
+
+## Start in den VB
+
+"Wie starten die LAA in den Vorbereitungsdienst (Vergleiche zu K1, K2, K3)?"
+
+### BilWiss
+
+pending
+
+### Überzeugungen: Theorie/Praxis Zusammenhang
+
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tp" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "kohorte" # Möglich ist: "kohorte" oder "gruppe"
+                         
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Enthusiasmus: Fach
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "entu" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "kohorte" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Enthusiasmus: Unterrichten
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "entf" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "kohorte" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Selbstreg. Fähigkeiten: Effort-Trait
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "efft" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "kohorte" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Selbstreg. Fähigkeiten: Reflexionsbereitschaft
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "rfbe" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "kohorte" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Vorerfahrung Medienkompetenz
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+# p_var <- "meko_1" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "kohorte" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+p_var <- "meko_1" # Variable in Anführungszeichen angeben
+p1 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "meko_2" # Variable in Anführungszeichen angeben
+p2 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "meko_3" # Variable in Anführungszeichen angeben
+p3 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "meko_4" # Variable in Anführungszeichen angeben
+p4 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "meko_5" # Variable in Anführungszeichen angeben
+p5 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "meko_6" # Variable in Anführungszeichen angeben
+p6 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "meko_7" # Variable in Anführungszeichen angeben
+p7 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+ggarrange(p1, p2, p3, p4, p5, p6, p7,
+          ncol = 3,
+          nrow = 3,
+          align = "hv",
+          common.legend = T)
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Selbsteinschätzung Medienkompetenz
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "mekos" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "kohorte" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### TPK: Konzeptuelles Wissen
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tpkcon_score" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+### TPK: Situationales Wissen
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tpksit_score" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### TPK: Konzeptuelles Wissen - Subskala Potentiale
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tpkpot_score" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+### TPK: Konzeptuelles Wissen - Subskala ...
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tpksup_score" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### TPK: Situationales Wissen - Subskala AV
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tpksit_score_av" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### TPK: Situationales Wissen - Subskala TB
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tpksit_score_tb" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+### TPK: Situationales Wissen - Subskala AA
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "tpksit_score_aa" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+## Vorbereitungsdienst aus Sicht der LAA
+
+### Emotionale Erschöpfung
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "bel" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "interaction(gruppe, kohorte)" # Möglich ist: "kohorte", "gruppe" oder "interaction(gruppe, kohorte)"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  # group = ifelse(grepl("interaction", p_vergleich, fixed = T),    # TO FIX
+                  #                interaction(nrw_p$gruppe[!is.na(nrw_p[[p_var]])],
+                  #                            nrw_p$kohorte[!is.na(nrw_p[[p_var]])]), 
+                  #                droplevels(nrw_p[[p_vergleich]])),
+                  group = droplevels(interaction(nrw_p$gruppe, nrw_p$kohorte)),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+### Arbeitsengagement
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "aen" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "interaction(gruppe, kohorte)" # Möglich ist: "kohorte", "gruppe" oder "interaction(gruppe, kohorte)"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  # group = ifelse(grepl("interaction", p_vergleich, fixed = T),    # TO FIX
+                  #                interaction(nrw_p$gruppe[!is.na(nrw_p[[p_var]])],
+                  #                            nrw_p$kohorte[!is.na(nrw_p[[p_var]])]), 
+                  #                droplevels(nrw_p[[p_vergleich]])),
+                  group = droplevels(interaction(nrw_p$gruppe, nrw_p$kohorte)),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Berufszufriedenheit
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "zfr" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "interaction(gruppe, kohorte)" # Möglich ist: "kohorte", "gruppe" oder "interaction(gruppe, kohorte)"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  # group = ifelse(grepl("interaction", p_vergleich, fixed = T),    # TO FIX
+                  #                interaction(nrw_p$gruppe[!is.na(nrw_p[[p_var]])],
+                  #                            nrw_p$kohorte[!is.na(nrw_p[[p_var]])]), 
+                  #                droplevels(nrw_p[[p_vergleich]])),
+                  group = droplevels(interaction(nrw_p$gruppe, nrw_p$kohorte)),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+## Beurteilung der Ausbildungssituation im VD
+
+### Überzeugungen: Transmissiv
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "uebr" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "interaction(gruppe, kohorte)" # Möglich ist: "kohorte", "gruppe" oder
+# to fix: diese Zeile fehlt in manchen Variablen
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(interaction(nrw_p$gruppe, nrw_p$kohorte)), # to fix
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Überzeugungen: Konstruktivistisch
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "uebk" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "interaction(gruppe, kohorte)" # Möglich ist: "kohorte", "gruppe" oder
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(interaction(nrw_p$gruppe, nrw_p$kohorte)), # to fix
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Wahrg. Integration von Theorie & Praxis im Studienseminar
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "TPZU" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Innovationsbereitschaft
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "INNO" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Externale Kontrollüberzeugungen
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "EXKO" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Intention to Quit
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "QUIT" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Partizipation der Lehramtsanwärter_innen
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "SExMPART" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Eignungseinschätzung: Anteil
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "eignp" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Eignungseinschätzung Lehramtsanwärter_innen (Item)
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "eign_01" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Kooperation zwischen ZfsL und Ausbildungsschule
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "KOZA" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Unterstützung durch höhere Ebenen
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "SOZ" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+## Lerngelegenheiten im VD
+
+### Unterrichtsbesuch: Authentizität
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "ub_8" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Unterrichtsbesuch: Sorgen
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "ub_3" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Unterrichtsbesuch: Erwarteter Zeitaufwand
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "ub_7" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+### Unterrichtsbesuche: Nützlichkeit aus Sicht der ALK
+
+Sorry too lazy. This is from the codebook:
+![](`r here("www/scale_ub_01_from_codebook.png")`)
+
+
+
+### Zeitaufwand UB (Eigener)
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "ubvorA_1" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Zeitaufwand UB (LAA aus Sicht der ALK)
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "ubvorB_1" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+### Zeitaufwand UB (LAA und ALK gemeinsam)
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+p_var <- "ubvorC_1" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+# p_kohorten <- c("3", "4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
+
+
+
+
+
+### Nachbesprechung UB
+::: panel-tabset
+#### Abbildung
+```{r}
+rm(p_var)
+rm(p_vergleich)
+rm(p_kohorten)
+rm(p_gruppe)
+
+############################################### #
+### Welche VARIABLE soll ausgegeben werden?   ###
+############################################### #
+# p_var <- "" # Variable in Anführungszeichen angeben
+
+############################################### #
+### Welcher VERGLEICH soll angestellt werden? ###
+############################################### #
+p_vergleich <- "gruppe" # Möglich ist: "kohorte" oder "gruppe"
+
+############################################### #
+### Welche KOHORTEN sollen ausgegeben werden? ###
+############################################### #
+p_kohorten <- c("4") # Verfügbar: "1", "2", "3", "4"
+                          # Einfach auskommentieren, wenn 
+                          # alle ausgegeben werden sollen
+
+############################################### #
+### Welche GRUPPEN sollen ausgegeben werden?  ###
+############################################### #
+# p_gruppe <- c("laa") # Verfügbar: "laa" (Lehramtsanwärter*innen),
+                     #            "sab" (Seminarausbilder*innen)
+                     #            "alk" (Ausbildungslehrkräfte)
+                     # Einfach auskommentieren, wenn 
+                     # alle ausgegeben werden sollen
+
+nrw_p <- nrw
+if (exists("p_kohorten")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(kohorte %in% p_kohorten)
+}
+if (exists("p_gruppe")) {
+  nrw_p <- nrw_p |>
+    dplyr::filter(gruppe %in% p_gruppe)
+}
+```
+
+```{r}
+p_var <- "ubnach_1" # Variable in Anführungszeichen angeben
+p1 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "ubnach_2" # Variable in Anführungszeichen angeben
+p2 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "ubnach_3" # Variable in Anführungszeichen angeben
+p3 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+p_var <- "ubnach_4" # Variable in Anführungszeichen angeben
+p4 <- violin_plot(nrw_p,
+            eval(p_var),
+            eval(p_vergleich))
+
+ggarrange(p1, p2, p3, p4,
+          ncol = 2,
+          nrow = 2,
+          align = "hv",
+          common.legend = T)
+```
+
+#### Deskriptive Ergebnisse
+In der Spalte "group1" wird angezeigt, um welche Gruppe (Nummer der Kohorte oder Gruppe) es sich in der jeweiligen Zeile handelt
+
+```{r}
+psych::describeBy(nrw_p[[p_var]], 
+                  group = droplevels(nrw_p[[p_vergleich]]),
+                  mat=TRUE,
+                  digits=3)
+```
+
+#### Kohorten und Gruppen mit Daten
+
+Anzahl der Teilnehmenden je Gruppe und Kohorte:
+```{r}
+nrw %>%
+  dplyr::filter(!is.na(get(p_var))) %>%
+  {table(.$gruppe, .$kohorte)}
+```
+:::
 
 
 

@@ -1,0 +1,1715 @@
+---
+title: "Zwischenbericht MSB"
+subtitle: ""
+author:
+  - name: "Jürgen Schneider"
+    email: "ju.schneider@dipf.de"
+    affiliation: "DIPF"
+    correspondence: true
+date: "`r Sys.Date()`" # inserts the date of compiling
+editor: source
+execute:
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  cache: false # true will prevent embed-resources
+format: 
+  html:
+    theme: ceruleanc
+    number-sections: true
+    fontsize: 0.85em
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    embed-resources: true # will make standalone html file
+    code-fold: true
+    code-tools: true
+    code-link: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r load packages}
+#| echo: false
+
+library(rio)
+library(here)
+library(tidyverse)
+library(Hmisc)
+library(psych)
+library(ggpubr)
+```
+
+
+# Preparation
+
+::: panel-tabset
+
+## Import data
+
+```{r import data sets}
+k1k2 <- rio::import(here("data/07_LSI_MZP123456_Lehramtneu_Unicode.sav"))
+
+k3_laa <- rio::import(here("data/LAA_K3_2024-04-11.sav")) # K3 der LAA MZP 1 und MZP 2
+k3_alk_mzp1 <- rio::import(here("data/ALK_K3_MZP1_2022-04-04_Unicode.sav")) # K3 der ALK aus MZP 1
+k3_sab_mzp1 <- rio::import(here("data/SAB_K3_MZP1_2022-04-20.sav")) # K3 der SAB aus MZP 1
+
+k4_laa_mzp1 <- rio::import(here("data/LAA_K4_MZP1_2024-04-15.sav")) # K4 der LAA aus MZP 1
+k4_alk_mzp1 <- rio::import(here("data/ALK_K4_MZP1_2024-05-22.sav")) # K4 der ALK aus MZP 1
+k4_sab_mzp1 <- rio::import(here("data/SAB_K4_MZP1_2024-03-11.sav")) # K4 der SAB aus MZP 1
+```
+
+Alle genutzten Daten entstammen den MZP 1 der jeweiligen Kohorten.
+
+
+## Data wrangling
+Auswahl der Skalen und wrangling der Daten.
+
+### K1 & K2 LAA
+
+```{r}
+k1k2 <- k1k2 |>
+  dplyr::mutate(kohorte = as.factor(kohorte)) |>
+  dplyr::select(kohorte,
+                UL_1,
+                LE_1,
+                DE_1,
+                BT_1,
+                SP_1,
+                LB_1,
+                entu_1,
+                entf_1,
+                efft_1,
+                ee_1,
+                engak_1,
+                uebr_1,
+                uebk_1) |>
+  dplyr::rename_with(~ gsub("_1", "", .x, fixed = TRUE)) |> # Löschen von _01 in den Variablennamen
+  dplyr::rename(c(BilWiss_ul = UL,         # umbenennen der Variblen für das Matching
+                  BilWiss_le = LE,
+                  BilWiss_de = DE,
+                  BilWiss_bt = BT,
+                  BilWiss_sb = SP,
+                  BilWiss_lb = LB,
+                  bel = ee,
+                  aen = engak)) |>
+  dplyr::mutate(gruppe = as.factor("laa"),   # Variable zur Unterscheidung der Gruppen
+                efft = (efft/7)*4,   # rescale to fit K3 and K4
+                aen = (aen/7)*4)
+```
+
+
+
+### K3 LAA
+
+```{r}
+k3_laa <- k3_laa |>
+  dplyr::select(Score_Kurz_01,               # Auswahl der Variablen
+                Score_BT_KT_01,
+                Score_DE_KT_01,
+                Score_LB_KT_01,
+                Score_LE_KT_01,
+                Score_SB_KT_01,
+                Score_UN_KT_01,
+                tp_01,
+                entu_01,
+                entf_01,
+                efft_01,
+                rfbe_01,
+                meko_1_01 : meko_7_01,
+                mekos_01,
+                bel_01,
+                aen_01,
+                zfr_01,
+                uebr_01,
+                uebk_01) |>
+  dplyr::rename_with(~ gsub("_01", "", .x, fixed = TRUE)) |> # Löschen von _01 in den Variablennamen
+  dplyr::rename(c(BilWiss_kurz = Score_Kurz,         # umbenennen der Variblen für das Matching
+                  BilWiss_ul = Score_UN_KT,
+                  BilWiss_le = Score_LE_KT,
+                  BilWiss_de = Score_DE_KT,
+                  BilWiss_bt = Score_BT_KT,
+                  BilWiss_sb = Score_SB_KT,
+                  BilWiss_lb = Score_LB_KT)) |>
+  dplyr::mutate(kohorte = as.factor("3"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
+```
+
+### K4 LAA
+
+```{r}
+k4_laa_mzp1 <- k4_laa_mzp1 |>
+  dplyr::select(Score_Kurz_01K4,             # Auswahl der Variablen
+                Score_BT_KT_01K4,
+                Score_DE_KT_01K4,
+                Score_LB_KT_01K4,
+                Score_LE_KT_01K4,
+                Score_SB_KT_01K4,
+                Score_UN_KT_01K4,
+                tp_01K4,
+                entu_01K4,
+                entf_01K4,
+                efft_01K4,
+                rfbe_01K4,
+                meko_1_01K4 : meko_7_01K4,
+                mekos_01K4,
+                tpkcon_score_01K4,
+                tpksit_score_01K4,
+                tpkpot_score_01K4,
+                tpksup_score_01K4,
+                tpksit_score_av_01K4,
+                tpksit_score_tb_01K4,
+                tpksit_score_aa_01K4,
+                bel_01K4,
+                aen_01K4,
+                zfr_01K4,
+                palsma_01K4,
+                uebr_01K4,
+                uebk_01K4,
+                ub_8_01K4,
+                ub_3_01K4,
+                ub_7_01K4) |>
+  dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(c(BilWiss_kurz = Score_Kurz,         # umbenennen der Variblen für das Matching
+                  BilWiss_ul = Score_UN_KT,
+                  BilWiss_le = Score_LE_KT,
+                  BilWiss_de = Score_DE_KT,
+                  BilWiss_bt = Score_BT_KT,
+                  BilWiss_sb = Score_SB_KT,
+                  BilWiss_lb = Score_LB_KT)) |>
+  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("laa"))   # Variable zur Unterscheidung der Gruppen
+```
+
+
+### K3 ALK
+
+```{r}
+k3_alk_mzp1 <- k3_alk_mzp1 |>
+  dplyr::select(aunlt_01,             # Auswahl der Variablen
+                aunl_01,
+                # INNO_01, # nicht in den Daten & in Skalendoku
+                EE_01,
+                ENGA_01,
+                ZFR_01,
+                QUIT_01,
+                eignp_01,
+                eign_01_01,
+                soz_1_01, # hier gibt es einzelne Items, die erst in eine Skala gebracht werden müssen
+                soz_2_01,
+                soz_3_01,
+                koop_01) |>
+  dplyr::mutate(SOZ_01 = rowMeans(data.frame(soz_1_01, soz_2_01, soz_3_01))) |>
+  dplyr::select(-c(soz_1_01, soz_2_01, soz_3_01)) |>
+  dplyr::rename_with(~ gsub("_01", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(c(bel = EE,                       # umbenennen der Variblen für das Matching
+                  aen = ENGA,
+                  zfr = ZFR,
+                  uebr = aunlt,
+                  uebk = aunl,
+                  KOZA = koop,
+                  eign_01 = eign)) |>
+  dplyr::mutate(kohorte = as.factor("3"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("alk"))   # Variable zur Unterscheidung der Gruppen
+```
+
+
+
+### K4 ALK
+
+```{r}
+k4_alk_mzp1 <- k4_alk_mzp1 |>
+  dplyr::select(AUNLT_01K4,             # Auswahl der Variablen
+                AUNL_01K4,
+                INNO_01K4,
+                EE_01K4,
+                ENGA_01K4,
+                ZFR_01K4,
+                QUIT_01K4,
+                # LZ_01K4,   # In der Skalendoku aber nicht im Datensatz
+                eignp_01K4,
+                eign_01_01K4,
+                KOOP_01K4,
+                SOZ_01K4,
+                ubvorA_1_01K4,
+                ubvorB_1_01K4,
+                ubvorC_1_01K4,
+                ubvorA1X_01K4,
+                ubvorB1X_01K4,
+                ubvorC1X_01K4,
+                ubnach_1_01K4,
+                ubnach_2_01K4,
+                ubnach_3_01K4,
+                ubnach_4_01K4,
+                tpkcon_score_01K4,
+                tpksit_score_01K4,
+                tpkpot_score_01K4,
+                tpksup_score_01K4,
+                tpksit_score_av_01K4,
+                tpksit_score_tb_01K4,
+                tpksit_score_aa_01K4) |>
+  dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(c(KOZA = KOOP,                       # umbenennen der Variblen für das Matching
+                  bel = EE,
+                  aen = ENGA,
+                  zfr = ZFR,
+                  uebr = AUNLT,
+                  uebk = AUNL)) |>
+  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("alk"))   # Variable zur Unterscheidung der Gruppen
+```
+
+
+### K3 SAB
+
+```{r}
+k3_sab_mzp1 <- k3_sab_mzp1 |>
+  dplyr::select(AUNLT_01,             # Auswahl der Variablen
+                AUNL_01,
+                # INNO_01, # nicht in den Daten & in Skalendoku
+                SETH_FA_01,
+                SETH_KA_01,
+                EXKO_01,
+                EE_01,
+                ENGA_01,
+                ZFR_01,
+                QUIT_01,
+                SExFAP_01,
+                SExKAP_01,
+                LZ_01,
+                KOZA_01#,
+                # SOZ_01,  # nicht in den Daten & in Skalendoku
+                ) |>
+  dplyr::rename_with(~ gsub("_01", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(c(bel = EE, # umbenennen der Variblen für das Matching
+                  aen = ENGA,
+                  zfr = ZFR,
+                  uebr = AUNLT,
+                  uebk = AUNL)) |>
+  dplyr::mutate(kohorte = as.factor("3"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("sab"))   # Variable zur Unterscheidung der Gruppen
+```
+
+
+### K4 SAB
+
+```{r}
+k4_sab_mzp1 <- k4_sab_mzp1 |>
+  dplyr::select(AUNLT_01K4,             # Auswahl der Variablen
+                AUNL_01K4,
+                TPZU_01K4,
+                INNO_01K4,
+                EXKO_01K4,
+                EE_01K4,
+                ENGA_01K4,
+                ZFR_01K4,
+                QUIT_01K4,
+                SExMPART_01K4,
+                LZ_01K4,
+                eignp_01K4,
+                eign_01_01K4,
+                KOZA_01K4,
+                SOZ_01K4,
+                MEKOS_01K4,
+                tpkcon_score_01K4,
+                tpksit_score_01K4,
+                tpkpot_score_01K4,
+                tpksup_score_01K4,
+                tpksit_score_av_01K4,
+                tpksit_score_tb_01K4,
+                tpksit_score_aa_01K4,
+                Filterfrage_01K4) |>
+  dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
+  dplyr::rename(c(bel = EE,                       # umbenennen der Variblen für das Matching
+                  aen = ENGA,
+                  zfr = ZFR,
+                  uebr = AUNLT,
+                  uebk = AUNL,
+                  mekos = MEKOS)) |>
+  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+                gruppe = as.factor("sab"))   # Variable zur Unterscheidung der Gruppen
+
+
+```
+
+## Matching
+
+```{r}
+nrw <- dplyr::bind_rows(k1k2,
+                        k3_laa,
+                        k3_alk_mzp1,
+                        k3_sab_mzp1,
+                        k4_laa_mzp1,
+                        k4_alk_mzp1,
+                        k4_sab_mzp1)
+```
+:::
+
+
+# Analyses
+
+## Start in den VB
+
+"Wie starten die LAA in den Vorbereitungsdienst (Vergleiche zu K1, K2, K3)?"
+
+### BilWiss
+
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4"))
+
+p1 <- ggplot(nrw_p, aes(x=kohorte, y = BilWiss_kurz, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8) +
+  stat_summary(linewidth = 1, geom = "errorbar", width = .25) +
+  scale_x_discrete(labels = c("Kohorte 3", "Kohorte 4")) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  xlab("") +
+  ylab("Punkte") +
+  labs(title = "Bildungswissenschaftliches Wissen",
+       subtitle = "Gesamt",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = "none")
+
+
+
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::select(kohorte, BilWiss_ul,
+                         BilWiss_le,
+                         BilWiss_de,
+                         BilWiss_bt,
+                         BilWiss_sb,
+                         BilWiss_lb) |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  pivot_longer(2:7, names_to = "variables", values_to = "values")
+
+p2 <- ggplot(nrw_p, aes(x=variables, y = values, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1)) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_x_discrete(labels = c("Bildungstheorie", 
+                              "Diagnostik und Evaluation", 
+                              "Lehrerberuf als Profession", 
+                              "Lernen und Entwicklung", 
+                              "Schule als Bildungsinstitution", 
+                              "Unterrichtsgestaltung")) +
+  xlab("") +
+  ylab("Punkte") +
+  labs(title = "Bildungswissenschaftliches Wissen",
+       subtitle = "Bereiche (Subskalen)",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(axis.text.x = element_text(angle = 35, vjust = 1.2, hjust = 1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+
+ggarrange(p1, p2 + labs(title = ""),
+          ncol = 2,
+          align = "hv",
+          common.legend = T,
+          legend = "none")
+```
+
+### Aspekte professioneller Kompetenz
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::select(kohorte, tp,
+                         efft,
+                         rfbe) |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  pivot_longer(2:4, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x=factor(variables, 
+                                 levels = c("tp", "efft", "rfbe")), 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1)) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Überzeugungen:\nTheorie/Praxis\nZusammenhang",
+                              "Selbstregulative\nFähigkeiten:\nEffort-Trait", 
+                              "Selbstregulative\nFähigkeiten:\nReflexionsbereitschaft")) +
+  coord_cartesian(ylim=c(1,4.2),
+                  expand = F) +
+  xlab("") +
+  ylab("") +
+  labs(title = "Aspekte professioneller Kompetenz",
+       subtitle = "",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+
+
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::select(kohorte, entu,
+                         entf) |>
+  pivot_longer(2:3, names_to = "variables", values_to = "values")
+
+p2 <- ggplot(nrw_p, aes(x=factor(variables, 
+                                 levels = c("entu", "entf")), 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1)) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c("#fce725",
+                               "#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c("#fce725",
+                                "#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Enthusiasmus:\nUnterrichten", 
+                              "Enthusiasmus:\nFach")) +
+  coord_cartesian(ylim=c(1,4.2),
+                  expand = F) +
+  xlab("") +
+  ylab("") +
+  labs(title = "Aspekte professioneller Kompetenz",
+       subtitle = "",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p2
+```
+
+
+
+### Kompetenzen im Bereich ICT
+
+#### Vorerfahrung Medienkompetenz
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::select(kohorte, meko_1,
+                         meko_2,
+                         meko_3,
+                         meko_4,
+                         meko_5,
+                         meko_6,
+                         meko_7) |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  pivot_longer(2:8, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x=factor(variables,
+                                 levels = c("meko_5",
+                                            "meko_1",
+                                            "meko_6",
+                                            "meko_4",
+                                            "meko_2",
+                                            "meko_3",
+                                            "meko_7")), 
+                        y = values, 
+                        fill = factor(kohorte,
+                                      levels = c("4", "3")), 
+                        color = factor(kohorte,
+                                      levels = c("4", "3")))) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1)) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#440d53",
+                               "#34608d")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#440d53",
+                                "#34608d")) +
+  scale_x_discrete(labels = c("Im Rahmen\nvon Fortbildungen",
+                              "In der eigenen Schulzeit",
+                              "Durch den Austausch\nmit Kolleg_innen",
+                              "Im eigenen\nUnterricht",
+                              "In Lehrveranstal-\ntungen im Studium",
+                              "In Seminarver-\nanstaltungen am ZfsL",
+                              "Durch private Nutzung")) +
+  scale_y_continuous(labels = c("Gar\nnicht", "", "", "Sehr\nhäufig")) +
+  xlab("") +
+  ylab("") +
+  labs(title = "Vorerfahrung Medienkompetenz",
+       #subtitle = "\"Wie häufig sind Sie bisher im Rahmen der unten \ngenannten Lerngelegenheiten bzw. Tätigkeiten mit \ndem Thema des didaktischen/pädagogischen Einsatzes \nvon digitalen Medien in Berührung gekommen?\"",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        plot.subtitle=element_text(face="italic")) +
+  coord_flip(ylim=c(1,4.2),
+             expand = F)
+
+p1
+```
+
+
+#### Selbsteinschätzung Medienkompetenz
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4") & gruppe %in% c("laa", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x=gruppe, 
+                        y = mekos, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("LAA",
+                              "SAB")) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Selbsteinschätzung Medienkompetenz",
+       subtitle = "",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        plot.subtitle=element_text(face="italic")) +
+  coord_cartesian(ylim=c(1,4.2),
+                  expand = F)
+
+p1
+```
+
+
+### TPK
+
+```{r}
+
+nrw_p <- nrw |>
+  dplyr::select(kohorte, tpkcon_score, tpksit_score) |>
+  dplyr::filter(kohorte %in% c("4")) |>
+  pivot_longer(2:3, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x=variables, y = values, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, width = .5,
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_x_discrete(labels = c("Konzeptuell", "Situativ")) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  xlab("") +
+  ylab("Punkte") +
+  labs(title = "Technologisch-Pädagogisches Wissen",
+       subtitle = "Gesamt",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = "none")
+
+p1
+
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::select(kohorte, tpkpot_score,
+                         tpksup_score,
+                         tpksit_score_av,
+                         tpksit_score_tb,
+                         tpksit_score_aa) |>
+  dplyr::filter(kohorte %in% c("4")) |>
+  pivot_longer(2:6, names_to = "variables", values_to = "values")
+
+p2 <- ggplot(nrw_p, aes(x=factor(variables, 
+                                 levels = c("tpkpot_score",
+                                            "tpksup_score",
+                                            "tpksit_score_av",
+                                            "tpksit_score_tb",
+                                            "tpksit_score_aa")), 
+                        y = values, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_x_discrete(labels = c("Konzeptuell:\nPotentiale", 
+                              "Konzeptuell:\nPrinzipien", 
+                              "Situativ:\nAudiovisuelle Technologien", 
+                              "Situativ:\nTextbasierende Technologien", 
+                              "Situativ:\nAdaptive Beurteilungen Technologien")) +
+  xlab("") +
+  ylab("Punkte") +
+  labs(title = "Technologisch-Pädagogisches Wissen",
+       subtitle = "Bereiche (Subskalen)",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+ggarrange(p1, p2 + labs(title = ""),
+          ncol = 2,
+          align = "hv",
+          common.legend = T,
+          legend = "none")
+```
+
+
+## Der VD aus Sicht der LAA
+
+Anforderungsbewältigung der LAA: Umgang mit herausfordernden Situationen: Stress Resilienz (Wie empfinden die beteiligten Personen ihre Arbeit? Hölle Referendariat (Zum Teil schon berichtet, Oktober 2023)
+
+### Anforderungsbewältigung
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw
+
+p1 <- ggplot(nrw_p, aes(x=factor(kohorte, 
+                                 levels = c("1", "2", "3", "4")), 
+                        y = bel, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c("#fce725",
+                               "#37b877",
+                               "#34608d",
+                               "#440d53"),
+                    drop = F) +
+  scale_color_manual(values = c("#fce725",
+                                "#37b877",
+                                "#34608d",
+                                "#440d53"),
+                    drop = F) +
+  scale_x_discrete(breaks = c(1:4),
+                   labels = c("", "", "", "")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Emotionale Erschöpfung",
+       # subtitle = "Bereiche (Subskalen)",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p2 <- ggplot(nrw_p, aes(x=kohorte, 
+                        y = aen, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c("#fce725",
+                               "#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c("#fce725",
+                                "#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(breaks = c(1:4),
+                   labels = c("", "", "", "")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Arbeitsengagement",
+       # subtitle = "Bereiche (Subskalen)",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p3 <- ggplot(nrw_p, aes(x=kohorte, 
+                        y = zfr, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(breaks = c(3:4),
+                   labels = c("", "")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Berufszufriedenheit",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+ggarrange(p1 + 
+            xlab("Emotionale\nErschöpfung") + 
+            labs(title = "Anforderungsbewältigung") +
+            theme(legend.position = "none"), 
+          p2 + xlab("Arbeits-\nengagement") + ylab("") + labs(title = "") +
+            theme(legend.position = "bottom",
+                  axis.text.y = element_blank()), 
+          p3 + 
+            xlab("Berufs-\nzufriedenheit") + 
+            ylab("") + 
+            labs(title = "") +
+            # scale_x_discrete(limits = c(1,4),
+            #                  breaks = c(1:4),
+            #        labels = c("", "", "", "")) +
+            theme(legend.position = "none",
+                  axis.text.y = element_blank()),
+          align = "hv", 
+          ncol = 3)
+```
+
+
+#### Emotionale Erschöpfung
+
+
+```{r}
+p1
+```
+
+
+#### Arbeitsengagement
+
+
+```{r}
+p2
+```
+
+
+
+
+#### Berufszufriedenheit
+
+
+```{r}
+p3
+```
+
+### Bild der eigenen Tätigkeit
+
+#### Zielorientierung als Lehrer
+
+```{r}
+p1 <- ggplot(nrw_p, aes(#x=factor(kohorte, levels = c("4")), 
+                        x=kohorte, 
+                        y = palsma, 
+                        fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                #"#34608d",
+                                "#440d53")) +
+  scale_x_discrete(breaks = c(4),
+                   labels = c("Kohorte 4")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Zielorientierung als Lehrperson",
+       # subtitle = "Bereiche (Subskalen)",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+#### Überzeugungen über das Lernen
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::select(kohorte, uebr,
+                         uebk) |>
+  pivot_longer(2:3, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x=variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1)) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c("#fce725",
+                               "#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c("#fce725",
+                                "#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Konstruktivistische\nÜberzeugungen",
+                              "Transmissive\nÜberzeugungen")) +
+  coord_cartesian(ylim=c(1,4.2),
+                  expand = F) +
+  xlab("") +
+  ylab("") +
+  labs(title = "Überzeugungen über das Lernen",
+       subtitle = "",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+## Beurteilung der aktuellen Ausbildungssituation im VD
+
+#### Überzeugungen über das Lernen
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x = gruppe, 
+                        y = uebr, 
+                        fill = kohorte,
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1)) +
+  stat_summary(linewidth = 1, geom = "errorbar",
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK",
+                              "SAB")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("Transmissiv") +
+  ylab("") +
+  labs(title = "Überzeugungen über das Lernen",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        plot.subtitle=element_text(face="italic"))
+
+p2 <- ggplot(nrw_p, aes(x = gruppe, 
+                        y = uebk, 
+                        fill = kohorte,
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1)) +
+  stat_summary(linewidth = 1, geom = "errorbar",
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK",
+                              "SAB")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("Konstruktivistisch") +
+  ylab("") +
+  labs(title = "Überzeugungen über das Lernen",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(#axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        plot.subtitle=element_text(face="italic"))
+
+
+
+ggarrange(p1, 
+          p2 + 
+            labs(title = "") +
+            theme(axis.text.y = element_blank()),
+          ncol = 2,
+          align = "hv",
+          common.legend = T,
+          legend = "bottom")
+```
+
+
+### Arbeitsengangement
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x=gruppe, 
+                        y = aen, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK", 
+                              "SAB")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Arbeitsengagement",
+       subtitle = "",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+### Seminargestaltung
+
+- **Wahrgenommene Integration von Theorie und Praxis im Studienseminar**
+- **Externale Kontrollüberzeugungen als SAB**
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab")) |>
+  dplyr::select(kohorte, gruppe, EXKO, SETH_FA, SETH_KA, TPZU) |>
+  pivot_longer(3:6, names_to = "variables", values_to = "values") |>
+  mutate(variables = case_when(
+                        variables == "SETH_FA" | variables == "SETH_KA" ~ "TPZU",
+                        TRUE ~ variables))
+
+p1 <- ggplot(nrw_p, aes(x = variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Externale\nKontrollüberzeugungen",
+                              "Wahrgenommene Integration \nvon Theorie und Praxis \nim Studienseminar")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Seminargestaltung",
+       subtitle = "aus Sicht der SAB",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+\
+\
+
+- **Innovationsbereitschaft**
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x = gruppe, 
+                        y = INNO, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                #"#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK:\nbzgl. Schule",
+                              "SAB:\nbzgl. Seminargestaltung")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Innovationsbereitschaft",
+       subtitle = "",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+### Wohlbefinden
+
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk")) |>
+  dplyr::select(kohorte, gruppe, bel, zfr, QUIT) |>
+  pivot_longer(3:5, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x = variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Emotionale\nErschöpfung",
+                              "Intention\nto quit",
+                              "Berufszufriedenheit")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Wohlbefinden",
+       subtitle = "aus Sicht der ALK",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("sab")) |>
+  dplyr::select(kohorte, gruppe, bel, zfr, QUIT) |>
+  pivot_longer(3:5, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x = variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Emotionale\nErschöpfung",
+                              "Intention\nto quit",
+                              "Berufszufriedenheit")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Wohlbefinden",
+       subtitle = "aus Sicht der SAB",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+### Partizipation der LAA
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("sab")) |>
+  dplyr::select(kohorte, gruppe, SExMPART, SExFAP, SExKAP) |>
+  pivot_longer(3:5, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x = kohorte, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  # scale_x_discrete(labels = c("ALK:\nbzgl. Schule",
+  #                             "SAB:\nbzgl. Seminargestaltung")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Partizipation der LAA",
+       subtitle = "Aus Sicht der SAB",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank())
+
+p1
+```
+
+
+### Lernziele im VD
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("sab"))
+
+p1 <- ggplot(nrw_p, aes(x = kohorte, 
+                        y = LZ, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  # scale_x_discrete(labels = c("ALK:\nbzgl. Schule",
+  #                             "SAB:\nbzgl. Seminargestaltung")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Lernziele im VD",
+       subtitle = "Aus Sicht der SAB",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank())
+
+p1
+```
+
+
+### Eignungseinschätzung
+
+#### Item "Sicherheit der Einschätzung"
+
+"Nach dem Vorbereitungsdienst weiß ich genau, ob der/die Lehramtsanwärter_in für den Beruf als Lehrkraft geeignet ist oder nicht."
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x = gruppe, 
+                        y = eign_01, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK",
+                              "SAB")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Eignungseinschätzung",
+       subtitle = "Sicherheit der Einschätzung",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+#### Anteil
+
+"Wie groß schätzen Sie den Anteil der Lehramtsanwärter_innen, die Sie an Ihrer Schule im Vorbereitungsdienst erleben und **nicht** für den Lehrerberuf geeignet halten?"
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x = gruppe, 
+                        y = eignp, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK",
+                              "SAB")) +
+  coord_cartesian(ylim = c(0,100),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Eignungseinschätzung",
+       subtitle = "Prozent nicht geeigneter LAA",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+### Zusammenarbeit
+
+Kooperation zwischen ZfsL und Ausbildungsschule
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x = gruppe, 
+                        y = KOZA, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK",
+                              "SAB")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Kooperation",
+       subtitle = "zwischen ZfsL und Ausbildungsschule",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+
+### Unterstützung durch höhere Ebenen
+
+Kooperation zwischen ZfsL und Ausbildungsschule
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("alk", "sab"))
+
+p1 <- ggplot(nrw_p, aes(x = gruppe, 
+                        y = SOZ, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               "#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                "#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("ALK",
+                              "SAB")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Unterstützung durch höhere Ebenen",
+       subtitle = "",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+## Lerngelegenheiten im Vorbereitungsdienst
+
+### UB: Sicht der LAA
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("4")) |>
+  dplyr::filter(gruppe %in% c("laa")) |>
+  dplyr::select(kohorte, gruppe, ub_8, ub_3, ub_7) |>
+  pivot_longer(3:5, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x = variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                #"#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Sorgen\nschlecht\ndazustehen",
+                              "Erwarteter\nZeitaufwand",
+                              'Authentizität\n("Schaustunden")')) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Unterrichtsbesuche",
+       subtitle = "Aus Sicht der LAA",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+### UB: Nützlichkeit aus Sicht der ALK
+
+Sorry too lazy. This is from the codebook:
+![](`r here("www/scale_ub_01_from_codebook.png")`)
+
+
+### UB: Zeitaufwand aus Sicht der ALK
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("4")) |>
+  dplyr::filter(gruppe %in% c("alk")) |>
+  dplyr::select(kohorte, gruppe, ubvorA_1, ubvorB_1, ubvorC_1) |>
+  pivot_longer(3:5, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x = variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                #"#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Vorbereitung\nALK",
+                              "Vorbereitung\nLAA",
+                              "Vorbereitung\ngemeinsam")) +
+  coord_cartesian(ylim = c(1,4.1),
+                  expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Zeitaufwand des Unterrichtsbesuchs",
+       subtitle = "Aus Sicht der ALK",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+### UB: Zeitaufwand aus Sicht der ALK (Minuten)
+
+
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("4")) |>
+  dplyr::filter(gruppe %in% c("alk")) |>
+  dplyr::select(kohorte, gruppe, ubvorA1X, ubvorB1X, ubvorC1X) |>
+  pivot_longer(3:5, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x = variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#37b877",
+                                #"#34608d",
+                                "#440d53")) +
+  scale_x_discrete(labels = c("Vorbereitung\nALK",
+                              "Vorbereitung\nLAA",
+                              "Vorbereitung\ngemeinsam")) +
+  # coord_cartesian(ylim = c(1,4.1),
+  #                 expand = F) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Zeitaufwand des Unterrichtsbesuchs",
+       subtitle = "Aus Sicht der ALK (in Minuten)",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1
+```
+
+
+# Computational environment
+
+## Packages
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+
+## R Version
+
+```{r}
+R.Version()
+```
+
+
