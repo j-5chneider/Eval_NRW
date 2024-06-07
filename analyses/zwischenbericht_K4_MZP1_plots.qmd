@@ -39,6 +39,7 @@ library(tidyverse)
 library(Hmisc)
 library(psych)
 library(ggpubr)
+library(corrgram)
 ```
 
 
@@ -69,8 +70,12 @@ Auswahl der Skalen und wrangling der Daten.
 ### K1 & K2 LAA
 
 ```{r}
-k1k2 <- k1k2 |>
-  dplyr::mutate(kohorte = as.factor(kohorte)) |>
+k1k2_clean <- k1k2 |>
+  dplyr::mutate(kohorte = as.factor(kohorte),
+                 ee_1 = rowMeans(data.frame(ee_a_1, 
+                                            ee_b_1, 
+                                            ee_c_1, 
+                                            ee_d_1))) |>
   dplyr::select(kohorte,
                 UL_1,
                 LE_1,
@@ -82,7 +87,9 @@ k1k2 <- k1k2 |>
                 entf_1,
                 efft_1,
                 ee_1,
+                ee_3,
                 engak_1,
+                aen_3,
                 uebr_1,
                 uebk_1) |>
   dplyr::rename_with(~ gsub("_1", "", .x, fixed = TRUE)) |> # Löschen von _01 in den Variablennamen
@@ -104,7 +111,7 @@ k1k2 <- k1k2 |>
 ### K3 LAA
 
 ```{r}
-k3_laa <- k3_laa |>
+k3_laa_clean <- k3_laa |>
   dplyr::select(Score_Kurz_01,               # Auswahl der Variablen
                 Score_BT_KT_01,
                 Score_DE_KT_01,
@@ -139,7 +146,7 @@ k3_laa <- k3_laa |>
 ### K4 LAA
 
 ```{r}
-k4_laa_mzp1 <- k4_laa_mzp1 |>
+k4_laa_mzp1_clean <- k4_laa_mzp1 |>
   dplyr::select(Score_Kurz_01K4,             # Auswahl der Variablen
                 Score_BT_KT_01K4,
                 Score_DE_KT_01K4,
@@ -164,7 +171,9 @@ k4_laa_mzp1 <- k4_laa_mzp1 |>
                 bel_01K4,
                 aen_01K4,
                 zfr_01K4,
-                palsma_01K4,
+                palk_01K4,
+                palaz_01K4, 
+                palvz_01K4,
                 uebr_01K4,
                 uebk_01K4,
                 ub_8_01K4,
@@ -186,7 +195,7 @@ k4_laa_mzp1 <- k4_laa_mzp1 |>
 ### K3 ALK
 
 ```{r}
-k3_alk_mzp1 <- k3_alk_mzp1 |>
+k3_alk_mzp1_clean <- k3_alk_mzp1 |>
   dplyr::select(aunlt_01,             # Auswahl der Variablen
                 aunl_01,
                 # INNO_01, # nicht in den Daten & in Skalendoku
@@ -219,7 +228,7 @@ k3_alk_mzp1 <- k3_alk_mzp1 |>
 ### K4 ALK
 
 ```{r}
-k4_alk_mzp1 <- k4_alk_mzp1 |>
+k4_alk_mzp1_clean <- k4_alk_mzp1 |>
   dplyr::select(AUNLT_01K4,             # Auswahl der Variablen
                 AUNL_01K4,
                 INNO_01K4,
@@ -264,7 +273,7 @@ k4_alk_mzp1 <- k4_alk_mzp1 |>
 ### K3 SAB
 
 ```{r}
-k3_sab_mzp1 <- k3_sab_mzp1 |>
+k3_sab_mzp1_clean <- k3_sab_mzp1 |>
   dplyr::select(AUNLT_01,             # Auswahl der Variablen
                 AUNL_01,
                 # INNO_01, # nicht in den Daten & in Skalendoku
@@ -295,7 +304,7 @@ k3_sab_mzp1 <- k3_sab_mzp1 |>
 ### K4 SAB
 
 ```{r}
-k4_sab_mzp1 <- k4_sab_mzp1 |>
+k4_sab_mzp1_clean <- k4_sab_mzp1 |>
   dplyr::select(AUNLT_01K4,             # Auswahl der Variablen
                 AUNL_01K4,
                 TPZU_01K4,
@@ -336,13 +345,13 @@ k4_sab_mzp1 <- k4_sab_mzp1 |>
 ## Matching
 
 ```{r}
-nrw <- dplyr::bind_rows(k1k2,
-                        k3_laa,
-                        k3_alk_mzp1,
-                        k3_sab_mzp1,
-                        k4_laa_mzp1,
-                        k4_alk_mzp1,
-                        k4_sab_mzp1)
+nrw <- dplyr::bind_rows(k1k2_clean,
+                        k3_laa_clean,
+                        k3_alk_mzp1_clean,
+                        k3_sab_mzp1_clean,
+                        k4_laa_mzp1_clean,
+                        k4_alk_mzp1_clean,
+                        k4_sab_mzp1_clean)
 ```
 :::
 
@@ -641,6 +650,17 @@ p1
 
 ### TPK
 
+#### Reliabilität
+
+In <https://doi.org/10.1016/j.compedu.2019.103645> finden sich keine Angaben zur Reliabilität, deshalb berechnen wir McDonald's Omega.
+
+\
+
+**Die einzelnen Items des TPK-Tests sind nicht im Datensatz enthalten, deshalb kann ich keine interne Konsistenz berechnen.**
+
+
+#### TPK Test
+
 ```{r}
 
 nrw_p <- nrw |>
@@ -727,6 +747,40 @@ ggarrange(p1, p2 + labs(title = ""),
           align = "hv",
           common.legend = T,
           legend = "none")
+```
+
+
+#### Korrelation TPK ~~ Selbstberichte
+
+Der LAA in Kohorte 4.
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("4") & gruppe %in% c("laa")) |>
+  dplyr::select(tpkcon_score, 
+                tpksit_score,
+                tpkpot_score,
+                tpksup_score,
+                tpksit_score_av,
+                tpksit_score_tb,
+                tpksit_score_aa,
+                meko_1,
+                meko_2,
+                meko_3,
+                meko_4,
+                meko_5,
+                meko_6,
+                meko_7,
+                mekos
+                )
+
+
+corrgram(nrw_p, 
+         upper.panel=panel.pie, 
+         lower.panel=panel.conf, 
+         text.panel=panel.txt, 
+         main="Zusammenhang TPK-Test mit Selbstberichten") 
 ```
 
 
@@ -861,6 +915,54 @@ p1
 ```
 
 
+**Über die Zeit**
+
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("1", "2", "4")) |>
+  dplyr::select(kohorte, bel, ee_3) |>
+  pivot_longer(2:3, names_to = "variables", values_to = "values")
+
+p1a <- ggplot(nrw_p, aes(x=variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte,
+                        group = kohorte)) +
+  stat_summary(linewidth = 2, geom = "line",
+               position = position_dodge(width = .05)) +
+  stat_summary(geom = "point", size = 5, 
+               position = position_dodge(width = .05),
+               alpha = .7) +
+  scale_fill_manual(values = c("#fce725",
+                               "#37b877",
+                               "#34608d",
+                               "#440d53"),
+                    drop = F) +
+  scale_color_manual(values = c("#fce725",
+                                "#37b877",
+                                "#34608d",
+                                "#440d53"),
+                    drop = F) +
+  coord_cartesian(ylim = c(1,4.1)) +
+  scale_x_discrete(labels = c("Beginn\nVD", "Ende\nVD"),
+                   expand = expansion(mult = c(.1, .1))) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Emotionale Erschöpfung",
+       subtitle = "Im Verlauf der Zeit",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p1a
+```
+
+
+
 #### Arbeitsengagement
 
 
@@ -868,7 +970,51 @@ p1
 p2
 ```
 
+**Über die Zeit**
 
+```{r}
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("1", "2", "4")) |>
+  dplyr::select(kohorte, aen, aen_3) |>
+  pivot_longer(2:3, names_to = "variables", values_to = "values")
+
+p2a <- ggplot(nrw_p, aes(x=variables, 
+                        y = values, 
+                        fill = kohorte, 
+                        color = kohorte,
+                        group = kohorte)) +
+  stat_summary(linewidth = 2, geom = "line",
+               position = position_dodge(width = .05)) +
+  stat_summary(geom = "point", size = 5, 
+               position = position_dodge(width = .05),
+               alpha = .7) +
+  scale_fill_manual(values = c("#fce725",
+                               "#37b877",
+                               "#34608d",
+                               "#440d53"),
+                    drop = F) +
+  scale_color_manual(values = c("#fce725",
+                                "#37b877",
+                                "#34608d",
+                                "#440d53"),
+                    drop = F) +
+  coord_cartesian(ylim = c(1,4.1)) +
+  scale_x_discrete(labels = c("Beginn\nVD", "Ende\nVD"),
+                   expand = expansion(mult = c(.1, .1))) +
+  xlab("") +
+  ylab("Zustimmung") +
+  labs(title = "Arbeitsengagement",
+       subtitle = "Im Verlauf der Zeit",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p2a
+```
 
 
 #### Berufszufriedenheit
@@ -878,14 +1024,25 @@ p2
 p3
 ```
 
+
+
 ### Bild der eigenen Tätigkeit
 
-#### Zielorientierung als Lehrer
+#### Zielorientierung als Lehrkraft
 
 ```{r}
-p1 <- ggplot(nrw_p, aes(#x=factor(kohorte, levels = c("4")), 
-                        x=kohorte, 
-                        y = palsma, 
+rm(nrw_p)
+nrw_p <- nrw |>
+  # dplyr::filter(kohorte %in% c("1", "2", "4")) |>
+  dplyr::select(kohorte, palk,
+                         palaz, 
+                         palvz) |>
+  pivot_longer(2:4, names_to = "variables", values_to = "values")
+
+
+p1 <- ggplot(nrw_p, aes(x=factor(variables,
+                                 levels = c("palvz", "palaz", "palk")), 
+                        y = values, 
                         fill = kohorte, color = kohorte)) +
   stat_summary(geom = "bar", alpha = .8, 
                position = position_dodge2(width = 1, preserve = "single")) +
@@ -899,8 +1056,9 @@ p1 <- ggplot(nrw_p, aes(#x=factor(kohorte, levels = c("4")),
                                 #"#37b877",
                                 #"#34608d",
                                 "#440d53")) +
-  scale_x_discrete(breaks = c(4),
-                   labels = c("Kohorte 4")) +
+  scale_x_discrete(labels = c("Vermeidungs-\nleistungsziel",
+                              "Annäherungs-\nleistungsziel",
+                              "Lernziel")) +
   coord_cartesian(ylim = c(1,4.1),
                   expand = F) +
   xlab("") +
@@ -1652,7 +1810,7 @@ p1
 
 ### UB: Zeitaufwand aus Sicht der ALK (Minuten)
 
-
+**Als Balken**
 
 ```{r}
 rm(nrw_p)
@@ -1660,7 +1818,8 @@ nrw_p <- nrw |>
   dplyr::filter(kohorte %in% c("4")) |>
   dplyr::filter(gruppe %in% c("alk")) |>
   dplyr::select(kohorte, gruppe, ubvorA1X, ubvorB1X, ubvorC1X) |>
-  pivot_longer(3:5, names_to = "variables", values_to = "values")
+  pivot_longer(3:5, names_to = "variables", values_to = "values") |>
+  dplyr::mutate(values = ifelse(values >= 9997, NA, values)/60)
 
 p1 <- ggplot(nrw_p, aes(x = variables, 
                         y = values, 
@@ -1684,7 +1843,7 @@ p1 <- ggplot(nrw_p, aes(x = variables,
   # coord_cartesian(ylim = c(1,4.1),
   #                 expand = F) +
   xlab("") +
-  ylab("Zustimmung") +
+  ylab("Stunden") +
   labs(title = "Zeitaufwand des Unterrichtsbesuchs",
        subtitle = "Aus Sicht der ALK (in Minuten)",
        caption = "",
@@ -1696,6 +1855,147 @@ p1 <- ggplot(nrw_p, aes(x = variables,
 
 p1
 ```
+
+
+**Als density plot**  
+Hier habe ich bei "Zeitaufwand LAA" einen Datenpunkt bei 100 abgeschnitten:
+
+
+```{r}
+#| fig-height: 8
+
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::mutate(ubvorA1X = case_when(
+                              ubvorA1X == 9999 | ubvorA1X == 9998 | ubvorA1X == 9997 ~ NA,
+                              TRUE ~ ubvorA1X/60))
+
+p1 <- ggplot(nrw_p, aes(x = ubvorA1X, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  geom_density(alpha = .8, 
+               adjust = 1.2,
+               trim = T) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#0c020f",
+                               #"#7c1897",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#0c020f",
+                                #"#7c1897",
+                                "#440d53")) +
+  # coord_cartesian(xlim = c(0,25),
+  #                 expand = F) +
+  xlab("Zeitaufwand in Stunden") +
+  ylab("Dichte") +
+  labs(title = "Zeitaufwand des Unterrichtsbesuchs (aus Sicht der ALK)",
+       subtitle = "Eigener Zeitaufwand",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank())
+
+
+
+
+
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::mutate(ubvorB1X = case_when(
+                              ubvorB1X == 9999 | ubvorB1X == 9998 | ubvorB1X == 9997 ~ NA,
+                              TRUE ~ ubvorB1X/60))
+
+p2 <- ggplot(nrw_p, aes(x = ubvorB1X, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  geom_density(alpha = .8, 
+               adjust = 2,
+               trim = T) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#0c020f",
+                               #"#7c1897",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#0c020f",
+                                #"#7c1897",
+                                "#440d53")) +
+  # coord_cartesian(xlim = c(0,25),
+  #                 expand = F) +
+  xlab("Zeitaufwand in Stunden") +
+  ylab("Dichte") +
+  labs(title = "Zeitaufwand des Unterrichtsbesuchs (aus Sicht der ALK)",
+       subtitle = "Zeitaufwand der LAA",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank())
+
+
+
+
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::mutate(ubvorC1X = case_when(
+                              ubvorC1X == 9999 | ubvorC1X == 9998 | ubvorC1X == 9997 ~ NA,
+                              TRUE ~ ubvorC1X/60))
+
+p3 <- ggplot(nrw_p, aes(x = ubvorC1X, 
+                        fill = kohorte, 
+                        color = kohorte)) +
+  geom_density(alpha = .8, 
+               adjust = 1.2,
+               trim = T) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#0c020f",
+                               #"#7c1897",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                                #"#0c020f",
+                                #"#7c1897",
+                                "#440d53")) +
+  # coord_cartesian(xlim = c(0,25),
+  #                 expand = F) +
+  xlab("Zeitaufwand in Stunden") +
+  ylab("Dichte") +
+  labs(title = "Zeitaufwand des Unterrichtsbesuchs (aus Sicht der ALK)",
+       subtitle = "Gemeinsamer Zeitaufwand",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank())
+
+ggarrange(p1 +
+            xlab("") +
+            coord_cartesian(xlim = c(0,50),
+                            expand = F),
+          p2 +
+            xlab("") +
+            labs(title = "") +
+            coord_cartesian(xlim = c(0,50),
+                            expand = F), 
+          p3 +
+            labs(title = "") +
+            coord_cartesian(xlim = c(0,50),
+                            expand = F),
+          nrow = 3,
+          align = "hv",
+          common.legend = T,
+          legend = "bottom")
+```
+
+
 
 
 # Computational environment
