@@ -40,6 +40,7 @@ library(Hmisc)
 library(psych)
 library(ggpubr)
 library(corrgram)
+library(lsmeans)
 ```
 
 
@@ -147,7 +148,10 @@ k3_laa_clean <- k3_laa |>
 
 ```{r}
 k4_laa_mzp1_clean <- k4_laa_mzp1 |>
-  dplyr::select(Score_Kurz_01K4,             # Auswahl der Variablen
+  dplyr::select(xgender_01K4,             # Auswahl der Variablen
+                xage_01K4,
+                xsem_01K4,
+                Score_Kurz_01K4,
                 Score_BT_KT_01K4,
                 Score_DE_KT_01K4,
                 Score_LB_KT_01K4,
@@ -355,6 +359,26 @@ nrw <- dplyr::bind_rows(k1k2_clean,
 ```
 :::
 
+# Stichprobe K4
+
+```{r}
+nrw |>
+  dplyr::filter(kohorte == "4", gruppe == "laa") |>
+  dplyr::summarize(gender_f = sum(k4_laa_mzp1$xgender == 2, na.rm = T) / sum(!is.na(xgender)),
+                   gender_m = sum(k4_laa_mzp1$xgender == 1, na.rm = T) / sum(!is.na(xgender)),
+                   gender_d = sum(k4_laa_mzp1$xgender == 3, na.rm = T) / sum(!is.na(xgender)),
+                   age_M = mean(xage, na.rm = T),
+                   age_SD = SD(xage, na.rm = T),
+                   age_min = min(xage, na.rm = T),
+                   age_max = max(xage, na.rm = T),
+                   LA_Zugang_G         = sum(xsem == 1, na.rm = T),
+                   LA_Zugang_HRSGeSekI = sum(xsem == 2, na.rm = T),
+                   LA_Zugang_GyGeSekII = sum(xsem == 3, na.rm = T),
+                   LA_Zugang_SF        = sum(xsem == 4, na.rm = T),
+                   LA_Zugang_BK        = sum(xsem == 5, na.rm = T),
+                   LA_Zugang_kein      = sum(xsem == 6, na.rm = T))
+```
+
 
 # Analyses
 
@@ -443,6 +467,29 @@ ggarrange(p1, p2 + labs(title = ""),
           common.legend = T,
           legend = "none")
 ```
+
+**t-Test**  
+K3 vs. K4
+```{r}
+t.test(BilWiss_kurz ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+**Cohen's d**
+```{r}
+cohens_d <- psych::cohen.d(BilWiss_kurz ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+**Overlap**  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+
 
 ### Aspekte professioneller Kompetenz
 
@@ -534,7 +581,84 @@ p2 <- ggplot(nrw_p, aes(x=factor(variables,
 p2
 ```
 
+**ANOVA**  
+Enthusiasmus unterrichten: K1 vs. K2 vs. K3 vs. K4
+```{r}
+fit_aov <- aov(scale(entu) ~ kohorte, 
+               data = nrw |> dplyr::filter(gruppe %in% c("laa")))
+summary(fit_aov)
+```
 
+**Kontraste**  
+p-Werte adjustiert nach Tukey.  
+Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
+```{r}
+pairs(lsmeans(fit_aov, ~ kohorte))
+```
+
+\
+\
+
+**ANOVA**  
+Enthusiasmus Fach: K1 vs. K2 vs. K3 vs. K4
+```{r}
+fit_aov <- aov(scale(entf) ~ kohorte, 
+               data = nrw |> dplyr::filter(gruppe %in% c("laa")))
+summary(fit_aov)
+```
+
+**Kontraste**  
+p-Werte adjustiert nach Tukey.  
+Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
+```{r}
+pairs(lsmeans(fit_aov, ~ kohorte))
+```
+
+
+**t-Test**  
+Effort-Trait: K3 vs. K4
+```{r}
+t.test(efft ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+**Cohen's d**
+```{r}
+cohens_d <- psych::cohen.d(efft ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+**Overlap**  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+
+
+**t-Test**  
+Reflektionsbereitschaft: K3 vs. K4
+```{r}
+t.test(rfbe ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+**Cohen's d**
+```{r}
+cohens_d <- psych::cohen.d(rfbe ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+**Overlap**  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
 
 ### Kompetenzen im Bereich ICT
 
@@ -662,11 +786,10 @@ In <https://doi.org/10.1016/j.compedu.2019.103645> finden sich keine Angaben zur
 #### TPK Test
 
 ```{r}
-
 nrw_p <- nrw |>
-  dplyr::select(kohorte, tpkcon_score, tpksit_score) |>
-  dplyr::filter(kohorte %in% c("4")) |>
-  pivot_longer(2:3, names_to = "variables", values_to = "values")
+  dplyr::select(kohorte, gruppe, tpkcon_score, tpksit_score) |>
+  dplyr::filter(kohorte %in% c("4") & gruppe %in% c("laa")) |>
+  pivot_longer(3:4, names_to = "variables", values_to = "values")
 
 p1 <- ggplot(nrw_p, aes(x=variables, y = values, fill = kohorte, color = kohorte)) +
   stat_summary(geom = "bar", alpha = .8, width = .5,
@@ -698,13 +821,14 @@ p1
 
 rm(nrw_p)
 nrw_p <- nrw |>
-  dplyr::select(kohorte, tpkpot_score,
-                         tpksup_score,
-                         tpksit_score_av,
-                         tpksit_score_tb,
-                         tpksit_score_aa) |>
-  dplyr::filter(kohorte %in% c("4")) |>
-  pivot_longer(2:6, names_to = "variables", values_to = "values")
+  dplyr::select(kohorte, gruppe,
+                tpkpot_score,
+                tpksup_score,
+                tpksit_score_av,
+                tpksit_score_tb,
+                tpksit_score_aa) |>
+  dplyr::filter(kohorte %in% c("4") & gruppe %in% c("laa")) |>
+  pivot_longer(3:7, names_to = "variables", values_to = "values")
 
 p2 <- ggplot(nrw_p, aes(x=factor(variables, 
                                  levels = c("tpkpot_score",
@@ -1119,7 +1243,118 @@ p1 <- ggplot(nrw_p, aes(x=variables,
 p1
 ```
 
+
+
+**ANOVA**  
+K1 vs. K2 vs. K3 vs. K4
+```{r}
+
+fit_aov <- aov(scale(uebk) ~ kohorte, 
+               data = nrw |> dplyr::filter(gruppe %in% c("laa")))
+summary(fit_aov)
+```
+
+**Kontraste**  
+p-Werte adjustiert nach Tukey.  
+Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
+```{r}
+pairs(lsmeans(fit_aov, ~ kohorte))
+```
+
+
+
 ## Beurteilung der aktuellen Ausbildungssituation im VD
+
+
+#### TPK
+Der SAB
+```{r}
+nrw_p <- nrw |>
+  dplyr::select(kohorte, gruppe, tpkcon_score, tpksit_score) |>
+  dplyr::filter(kohorte %in% c("4") & gruppe %in% c("sab")) |>
+  pivot_longer(3:4, names_to = "variables", values_to = "values")
+
+p1 <- ggplot(nrw_p, aes(x=variables, y = values, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, width = .5,
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_x_discrete(labels = c("Konzeptuell", "Situativ")) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  xlab("") +
+  ylab("Punkte") +
+  labs(title = "Technologisch-Pädagogisches Wissen",
+       subtitle = "Der SAB, gesamt",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = "none")
+
+p1
+
+rm(nrw_p)
+nrw_p <- nrw |>
+  dplyr::select(kohorte, gruppe,
+                tpkpot_score,
+                tpksup_score,
+                tpksit_score_av,
+                tpksit_score_tb,
+                tpksit_score_aa) |>
+  dplyr::filter(kohorte %in% c("4") & gruppe %in% c("sab")) |>
+  pivot_longer(3:7, names_to = "variables", values_to = "values")
+
+p2 <- ggplot(nrw_p, aes(x=factor(variables, 
+                                 levels = c("tpkpot_score",
+                                            "tpksup_score",
+                                            "tpksit_score_av",
+                                            "tpksit_score_tb",
+                                            "tpksit_score_aa")), 
+                        y = values, fill = kohorte, color = kohorte)) +
+  stat_summary(geom = "bar", alpha = .8, 
+               position = position_dodge2(width = 1, preserve = "single")) +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, position = position_dodge(width = .9)) +
+  scale_fill_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_color_manual(values = c(#"#fce725",
+                               #"#37b877",
+                               #"#34608d",
+                               "#440d53")) +
+  scale_x_discrete(labels = c("Konzeptuell:\nPotentiale", 
+                              "Konzeptuell:\nPrinzipien", 
+                              "Situativ:\nAudiovisuelle Technologien", 
+                              "Situativ:\nTextbasierende Technologien", 
+                              "Situativ:\nAdaptive Beurteilungen Technologien")) +
+  xlab("") +
+  ylab("Punkte") +
+  labs(title = "Technologisch-Pädagogisches Wissen",
+       subtitle = "Der SAB, Bereiche (Subskalen)",
+       caption = "",
+       fill = "Kohorte",
+       color = "Kohorte") +
+  theme_minimal(base_size = 14) +
+  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+ggarrange(p1, p2 + labs(title = ""),
+          ncol = 2,
+          align = "hv",
+          common.legend = T,
+          legend = "none")
+```
 
 #### Überzeugungen über das Lernen
 
