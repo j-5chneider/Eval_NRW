@@ -319,6 +319,8 @@ k4_sab_mzp1_clean <- k4_sab_mzp1 |>
                 ZFR_01K4,
                 QUIT_01K4,
                 SExMPART_01K4,
+                SExFAP_01K4,
+                SExKAP_01K4,
                 LZ_01K4,
                 eignp_01K4,
                 eign_01_01K4,
@@ -390,7 +392,8 @@ nrw |>
 
 ```{r}
 nrw_p <- nrw |>
-  dplyr::filter(kohorte %in% c("3", "4"))
+  dplyr::filter(kohorte %in% c("3", "4") &
+                gruppe %in% c("laa"))
 
 p1 <- ggplot(nrw_p, aes(x=kohorte, y = BilWiss_kurz, fill = kohorte, color = kohorte)) +
   stat_summary(geom = "bar", alpha = .8) +
@@ -468,7 +471,8 @@ ggarrange(p1, p2 + labs(title = ""),
           legend = "none")
 ```
 
-**t-Test**  
+**BilWiss**  
+*t-Test*  
 K3 vs. K4
 ```{r}
 t.test(BilWiss_kurz ~ kohorte, 
@@ -476,7 +480,7 @@ t.test(BilWiss_kurz ~ kohorte,
                                    gruppe %in% c("laa")))
 ```
 
-**Cohen's d**
+*Cohen's d*
 ```{r}
 cohens_d <- psych::cohen.d(BilWiss_kurz ~ kohorte, 
                            data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
@@ -484,7 +488,7 @@ cohens_d <- psych::cohen.d(BilWiss_kurz ~ kohorte,
 cohens_d$cohen.d
 ```
 
-**Overlap**  
+*Overlap*  
 in Prozent
 ```{r}
 2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
@@ -496,10 +500,11 @@ in Prozent
 ```{r}
 rm(nrw_p)
 nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4") &
+                gruppe %in% c("laa")) |>
   dplyr::select(kohorte, tp,
                          efft,
                          rfbe) |>
-  dplyr::filter(kohorte %in% c("3", "4")) |>
   pivot_longer(2:4, names_to = "variables", values_to = "values")
 
 p1 <- ggplot(nrw_p, aes(x=factor(variables, 
@@ -541,6 +546,7 @@ p1
 
 rm(nrw_p)
 nrw_p <- nrw |>
+  dplyr::filter(gruppe %in% c("laa")) |>
   dplyr::select(kohorte, entu,
                          entf) |>
   pivot_longer(2:3, names_to = "variables", values_to = "values")
@@ -581,15 +587,16 @@ p2 <- ggplot(nrw_p, aes(x=factor(variables,
 p2
 ```
 
-**ANOVA**  
-Enthusiasmus unterrichten: K1 vs. K2 vs. K3 vs. K4
+**Enthusiasmus unterrichten**  
+*ANOVA*  
+K1 vs. K2 vs. K3 vs. K4
 ```{r}
 fit_aov <- aov(scale(entu) ~ kohorte, 
                data = nrw |> dplyr::filter(gruppe %in% c("laa")))
 summary(fit_aov)
 ```
 
-**Kontraste**  
+*Kontraste*  
 p-Werte adjustiert nach Tukey.  
 Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
 ```{r}
@@ -599,31 +606,32 @@ pairs(lsmeans(fit_aov, ~ kohorte))
 \
 \
 
-**ANOVA**  
-Enthusiasmus Fach: K1 vs. K2 vs. K3 vs. K4
+**Enthusiasmus Fach**  
+*ANOVA*  
+K1 vs. K2 vs. K3 vs. K4
 ```{r}
 fit_aov <- aov(scale(entf) ~ kohorte, 
                data = nrw |> dplyr::filter(gruppe %in% c("laa")))
 summary(fit_aov)
 ```
 
-**Kontraste**  
+*Kontraste*  
 p-Werte adjustiert nach Tukey.  
 Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
 ```{r}
 pairs(lsmeans(fit_aov, ~ kohorte))
 ```
 
-
-**t-Test**  
-Effort-Trait: K3 vs. K4
+**Effort-Trait**  
+*t-Test*  
+K3 vs. K4
 ```{r}
 t.test(efft ~ kohorte, 
        data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
                                    gruppe %in% c("laa")))
 ```
 
-**Cohen's d**
+*Cohen's d*
 ```{r}
 cohens_d <- psych::cohen.d(efft ~ kohorte, 
                            data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
@@ -631,22 +639,22 @@ cohens_d <- psych::cohen.d(efft ~ kohorte,
 cohens_d$cohen.d
 ```
 
-**Overlap**  
+*Overlap*  
 in Prozent
 ```{r}
 2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
 ```
 
-
-**t-Test**  
-Reflektionsbereitschaft: K3 vs. K4
+**Reflektionsbereitschaft**  
+*t-Test*  
+K3 vs. K4
 ```{r}
 t.test(rfbe ~ kohorte, 
        data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
                                    gruppe %in% c("laa")))
 ```
 
-**Cohen's d**
+*Cohen's d*
 ```{r}
 cohens_d <- psych::cohen.d(rfbe ~ kohorte, 
                            data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
@@ -654,7 +662,7 @@ cohens_d <- psych::cohen.d(rfbe ~ kohorte,
 cohens_d$cohen.d
 ```
 
-**Overlap**  
+*Overlap*  
 in Prozent
 ```{r}
 2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
@@ -667,6 +675,8 @@ in Prozent
 ```{r}
 rm(nrw_p)
 nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4") &
+                gruppe %in% c("laa")) |>
   dplyr::select(kohorte, meko_1,
                          meko_2,
                          meko_3,
@@ -674,7 +684,6 @@ nrw_p <- nrw |>
                          meko_5,
                          meko_6,
                          meko_7) |>
-  dplyr::filter(kohorte %in% c("3", "4")) |>
   pivot_longer(2:8, names_to = "variables", values_to = "values")
 
 p1 <- ggplot(nrw_p, aes(x=factor(variables,
@@ -728,6 +737,178 @@ p1 <- ggplot(nrw_p, aes(x=factor(variables,
 p1
 ```
 
+**Im Rahmen von Fortbildungen**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(meko_5 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(meko_5 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**In der eigenen Schulzeit**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(meko_1 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(meko_1 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**Durch den Austausch mit Kolleg_innen**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(meko_6 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(meko_6 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**Im eigenen Unterricht**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(meko_4 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(meko_4 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+
+**In Lehrveranstaltungen im Studium**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(meko_2 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(meko_2 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+
+**In Seminarveranstaltungen am ZfsL**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(meko_3 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(meko_3 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+
+**Durch private Nutzung**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(meko_7 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(meko_7 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+
 
 #### Selbsteinschätzung Medienkompetenz
 
@@ -771,6 +952,53 @@ p1 <- ggplot(nrw_p, aes(x=gruppe,
 p1
 ```
 
+**LAA: Selbsteinschätzung Medienkompetenz**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(mekos ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("laa")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(mekos ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("laa")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+
+**LAA vs. SAB: Selbsteinschätzung Medienkompetenz**  
+*t-Test*  
+```{r}
+t.test(mekos ~ gruppe, 
+       data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                   gruppe %in% c("laa", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(mekos ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("laa", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
 
 ### TPK
 
@@ -916,7 +1144,8 @@ Anforderungsbewältigung der LAA: Umgang mit herausfordernden Situationen: Stres
 
 ```{r}
 rm(nrw_p)
-nrw_p <- nrw
+nrw_p <- nrw |>
+  dplyr::filter(gruppe %in% c("laa"))
 
 p1 <- ggplot(nrw_p, aes(x=factor(kohorte, 
                                  levels = c("1", "2", "3", "4")), 
@@ -1044,7 +1273,7 @@ p1
 ```{r}
 rm(nrw_p)
 nrw_p <- nrw |>
-  dplyr::filter(kohorte %in% c("1", "2", "4")) |>
+  dplyr::filter(kohorte %in% c("1", "2", "4") & gruppe %in% c("laa")) |>
   dplyr::select(kohorte, bel, ee_3) |>
   pivot_longer(2:3, names_to = "variables", values_to = "values")
 
@@ -1085,6 +1314,87 @@ p1a <- ggplot(nrw_p, aes(x=variables,
 p1a
 ```
 
+**Emotionale Erschöpfung**  
+*ANOVA*  
+K1 vs. K2 vs. K3 vs. K4  
+zu MZP 1
+```{r}
+fit_aov <- aov(scale(bel) ~ kohorte, 
+               data = nrw |> dplyr::filter(gruppe %in% c("laa")))
+summary(fit_aov)
+```
+
+*Kontraste*  
+p-Werte adjustiert nach Tukey.  
+Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
+```{r}
+pairs(lsmeans(fit_aov, ~ kohorte))
+```
+
+\
+\
+
+**Emotionale Erschöpfung**  
+*t-Test*  
+K1: MZP1 vs. MZP3
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("1") & 
+                gruppe %in% c("laa"))
+
+t.test(nrw_p$bel, 
+       nrw_p$ee_3, 
+       paired = T)
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- effsize::cohen.d(nrw_p$bel, nrw_p$ee_3, 
+                             paired = TRUE,
+                             na.rm = TRUE)
+
+cohens_d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$estimate) / 2) * 100
+```
+\
+\
+
+**Emotionale Erschöpfung**  
+*t-Test*  
+K2: MZP1 vs. MZP3
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("2") & 
+                gruppe %in% c("laa"))
+
+t.test(nrw_p$bel, 
+       nrw_p$ee_3, 
+       paired = T)
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- effsize::cohen.d(nrw_p$bel, nrw_p$ee_3, 
+                             paired = TRUE,
+                             na.rm = TRUE)
+
+cohens_d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$estimate) / 2) * 100
+```
+\
+
+
+
 
 
 #### Arbeitsengagement
@@ -1099,7 +1409,7 @@ p2
 ```{r}
 rm(nrw_p)
 nrw_p <- nrw |>
-  dplyr::filter(kohorte %in% c("1", "2", "4")) |>
+  dplyr::filter(kohorte %in% c("1", "2", "4") & gruppe %in% c("laa")) |>
   dplyr::select(kohorte, aen, aen_3) |>
   pivot_longer(2:3, names_to = "variables", values_to = "values")
 
@@ -1140,6 +1450,84 @@ p2a <- ggplot(nrw_p, aes(x=variables,
 p2a
 ```
 
+**Arbeitsengagement**  
+*ANOVA*  
+K1 vs. K2 vs. K3 vs. K4  
+zu MZP 1
+```{r}
+fit_aov <- aov(scale(aen) ~ kohorte, 
+               data = nrw |> dplyr::filter(gruppe %in% c("laa")))
+summary(fit_aov)
+```
+
+*Kontraste*  
+p-Werte adjustiert nach Tukey.  
+Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
+```{r}
+pairs(lsmeans(fit_aov, ~ kohorte))
+```
+
+\
+\
+
+**Arbeitsengagement**  
+*t-Test*  
+K1: MZP1 vs. MZP3
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("1") & 
+                gruppe %in% c("laa"))
+
+t.test(nrw_p$aen, 
+       nrw_p$aen_3, 
+       paired = T)
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- effsize::cohen.d(nrw_p$aen, nrw_p$aen_3, 
+                             paired = TRUE,
+                             na.rm = TRUE)
+
+cohens_d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$estimate) / 2) * 100
+```
+\
+\
+
+**Arbeitsengagement**  
+*t-Test*  
+K2: MZP1 vs. MZP3
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("2") & 
+                gruppe %in% c("laa"))
+
+t.test(nrw_p$aen, 
+       nrw_p$aen_3, 
+       paired = T)
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- effsize::cohen.d(nrw_p$aen, nrw_p$aen_3, 
+                             paired = TRUE,
+                             na.rm = TRUE)
+
+cohens_d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$estimate) / 2) * 100
+```
+\
 
 #### Berufszufriedenheit
 
@@ -1205,9 +1593,10 @@ p1
 ```{r}
 rm(nrw_p)
 nrw_p <- nrw |>
-  dplyr::select(kohorte, uebr,
-                         uebk) |>
-  pivot_longer(2:3, names_to = "variables", values_to = "values")
+  dplyr::select(kohorte, gruppe,
+                uebr, uebk) |>
+  dplyr::filter(gruppe %in% c("laa")) |>
+  pivot_longer(3:4, names_to = "variables", values_to = "values")
 
 p1 <- ggplot(nrw_p, aes(x=variables, 
                         y = values, 
@@ -1244,8 +1633,8 @@ p1
 ```
 
 
-
-**ANOVA**  
+**Konstruktivistische Überzeugungen**
+*ANOVA* 
 K1 vs. K2 vs. K3 vs. K4
 ```{r}
 
@@ -1254,7 +1643,7 @@ fit_aov <- aov(scale(uebk) ~ kohorte,
 summary(fit_aov)
 ```
 
-**Kontraste**  
+*Kontraste*  
 p-Werte adjustiert nach Tukey.  
 Werte unter "estimate" sind Cohen'd äquivalent zu interpretieren.
 ```{r}
@@ -1266,7 +1655,7 @@ pairs(lsmeans(fit_aov, ~ kohorte))
 ## Beurteilung der aktuellen Ausbildungssituation im VD
 
 
-#### TPK
+### TPK
 Der SAB
 ```{r}
 nrw_p <- nrw |>
@@ -1356,7 +1745,55 @@ ggarrange(p1, p2 + labs(title = ""),
           legend = "none")
 ```
 
-#### Überzeugungen über das Lernen
+
+**LAA vs. SAB: TPK konzeptuell**  
+*t-Test*  
+```{r}
+t.test(tpkcon_score ~ gruppe, 
+       data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                   gruppe %in% c("laa", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(tpkcon_score ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("laa", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+
+**LAA vs. SAB: TPK situativ**  
+*t-Test*  
+```{r}
+t.test(tpksit_score ~ gruppe, 
+       data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                   gruppe %in% c("laa", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(tpksit_score ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("laa", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+### Überzeugungen über das Lernen
 
 ```{r}
 rm(nrw_p)
@@ -1439,6 +1876,104 @@ ggarrange(p1,
           common.legend = T,
           legend = "bottom")
 ```
+
+**Überzeugungen über das Lernen: Transmissiv**  
+*t-Test*  
+ALK: K3 vs. K4
+```{r}
+t.test(uebr ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("alk")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(uebr ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("alk")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**Überzeugungen über das Lernen: Transmissiv**  
+*t-Test*  
+SAB: K3 vs. K4
+```{r}
+t.test(uebr ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(uebr ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**Überzeugungen über das Lernen: Konstruktivistisch**  
+*t-Test*  
+ALK: K3 vs. K4
+```{r}
+t.test(uebk ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("alk")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(uebk ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("alk")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**Überzeugungen über das Lernen: Konstruktivistisch**  
+*t-Test*  
+SAB: K3 vs. K4
+```{r}
+t.test(uebk ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(uebk ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+
 
 
 ### Arbeitsengangement
@@ -1534,11 +2069,69 @@ p1 <- ggplot(nrw_p, aes(x = variables,
 p1
 ```
 
+**Externale Kontrollüberzeugung**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(EXKO ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                     gruppe %in% c("sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(EXKO ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
 
 \
 \
 
-- **Innovationsbereitschaft**
+
+**Wahrgenommene Integration von Theorie und Praxis**  
+*t-Test*  
+K3 vs. K4
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("3", "4")) |>
+  dplyr::filter(gruppe %in% c("sab")) |>
+  dplyr::select(kohorte, gruppe, SETH_FA, SETH_KA, TPZU) |>
+  pivot_longer(3:5, names_to = "variables", values_to = "values") |>
+  mutate(variables = case_when(
+                        variables == "SETH_FA" | variables == "SETH_KA" ~ "TPZU",
+                        TRUE ~ variables))
+
+t.test(values ~ kohorte, 
+       data = nrw_p |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                     gruppe %in% c("sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(values ~ kohorte, 
+                           data = nrw_p |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                         gruppe %in% c("sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+
+\
+\
+
+**Innovationsbereitschaft**
 
 ```{r}
 rm(nrw_p)
@@ -1578,6 +2171,29 @@ p1 <- ggplot(nrw_p, aes(x = gruppe,
         panel.grid.minor.y = element_blank())
 
 p1
+```
+
+**Innovationsbereitschaft**  
+*t-Test*  
+ALK vs. SAB
+```{r}
+t.test(INNO ~ gruppe, 
+       data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                   gruppe %in% c("alk", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(INNO ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("alk", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
 ```
 
 
@@ -1679,7 +2295,7 @@ rm(nrw_p)
 nrw_p <- nrw |>
   dplyr::filter(kohorte %in% c("3", "4")) |>
   dplyr::filter(gruppe %in% c("sab")) |>
-  dplyr::select(kohorte, gruppe, SExMPART, SExFAP, SExKAP) |>
+  dplyr::select(kohorte, gruppe, SExMPART, SExFAP, SExKAP) |> # sind jeweils die Skalen, nur von unterschiedlichen Personen beantwortet, deshalb werden alle drei Skalen benötigt
   pivot_longer(3:5, names_to = "variables", values_to = "values")
 
 p1 <- ggplot(nrw_p, aes(x = kohorte, 
@@ -1715,6 +2331,44 @@ p1 <- ggplot(nrw_p, aes(x = kohorte,
         axis.text.x = element_blank())
 
 p1
+```
+
+**Partizipation**  
+*t-Test*  
+K3 vs. K4
+```{r}
+t.test(values ~ kohorte, 
+       data = nrw_p |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                     gruppe %in% c("sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(values ~ kohorte, 
+                           data = nrw_p |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+
+**Korrelation: Partizipation ~~ Konstruktivistische Überz.**
+K4 SAB
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(kohorte %in% c("4")) |>
+  dplyr::filter(gruppe %in% c("sab")) |>
+  dplyr::mutate(SEx = case_when(
+                        !is.na(SExMPART) ~ SExMPART,
+                        !is.na(SExFAP) ~ SExFAP,
+                        !is.na(SExKAP) ~ SExKAP,
+                        TRUE ~ NA))
+
+cor.test(nrw_p$SEx, nrw_p$uebk, use = "pairwise.complete.obs")
 ```
 
 
@@ -1808,6 +2462,52 @@ p1 <- ggplot(nrw_p, aes(x = gruppe,
 p1
 ```
 
+**Item "Sicherheit der Einschätzung"**  
+*t-Test*  
+ALK: K3 vs. K4
+```{r}
+t.test(eign_01 ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("alk")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(eign_01 ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("alk")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+
+
+**Item "Sicherheit der Einschätzung"**  
+*t-Test*  
+ALK vs. SAB
+```{r}
+t.test(eign_01 ~ gruppe, 
+       data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                   gruppe %in% c("alk", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(eign_01 ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("alk", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
 
 #### Anteil
 
@@ -1851,6 +2551,53 @@ p1 <- ggplot(nrw_p, aes(x = gruppe,
         panel.grid.minor.y = element_blank())
 
 p1
+```
+
+**Anteil**  
+*t-Test*  
+ALK: K3 vs. K4
+```{r}
+t.test(eignp ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("alk")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(eignp ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("alk")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+
+
+**Anteil**  
+*t-Test*  
+ALK: K3 vs. K4
+```{r}
+t.test(eignp ~ gruppe, 
+       data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                   gruppe %in% c("alk", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(eignp ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("alk", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
 ```
 
 
@@ -1898,7 +2645,100 @@ p1 <- ggplot(nrw_p, aes(x = gruppe,
 p1
 ```
 
+**Kooperation**  
+*t-Test*  
+ALK: K3 vs. K4
+```{r}
+t.test(KOZA ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("alk")))
+```
 
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(KOZA ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("alk")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**Kooperation**  
+*t-Test*  
+SAB: K3 vs. K4
+```{r}
+t.test(KOZA ~ kohorte, 
+       data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                   gruppe %in% c("sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(KOZA ~ kohorte, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("3", "4") & 
+                                                       gruppe %in% c("sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+
+
+**Kooperation**  
+*t-Test*  
+K3: ALK vs. SAB
+```{r}
+t.test(KOZA ~ gruppe, 
+       data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                   gruppe %in% c("alk", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(KOZA ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("alk", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
+\
+
+**Kooperation**  
+*t-Test*  
+K4: ALK vs. SAB
+```{r}
+t.test(KOZA ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("alk", "sab")))
+```
+
+*Cohen's d*
+```{r}
+cohens_d <- psych::cohen.d(KOZA ~ gruppe, 
+                           data = nrw |> dplyr::filter(kohorte %in% c("4") & 
+                                                       gruppe %in% c("alk", "sab")))
+cohens_d$cohen.d
+```
+
+*Overlap*  
+in Prozent
+```{r}
+2 * pnorm(-abs(cohens_d$cohen.d[1, "effect"]) / 2) * 100
+```
 
 ### Unterstützung durch höhere Ebenen
 
@@ -1990,6 +2830,13 @@ p1 <- ggplot(nrw_p, aes(x = variables,
 
 p1
 ```
+
+
+**Korrelation: Sorgen schlecht dazustehen ~~ Vermeidungszielorientierung**
+```{r}
+cor.test(nrw$ub_3, nrw$palvz, use="pairwise.complete.obs")
+```
+
 
 ### UB: Nützlichkeit aus Sicht der ALK
 
