@@ -1,0 +1,1181 @@
+---
+title: "Analysen zur Vorbereitung des MZP 2"
+subtitle: "Kürzung der Tests"
+author:
+  - name: "Jürgen Schneider"
+    email: "ju.schneider@dipf.de"
+    affiliation: "DIPF"
+    correspondence: true
+date: "`r Sys.Date()`" # inserts the date of compiling
+editor: source
+execute:
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  cache: false # true will prevent embed-resources
+format: 
+  html:
+    theme: ceruleanc
+    number-sections: true
+    fontsize: 0.85em
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    embed-resources: true # will make standalone html file
+    code-fold: true
+    code-tools: true
+    code-link: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r load packages}
+#| echo: false
+
+library(tidyverse)
+library(lavaan)
+library(psych)
+library(here)
+library(rio)
+```
+
+
+# Preparation
+
+
+
+## Import & wrangle data
+
+```{r import data sets}
+ALK_K4_MZP1 <- rio::import(here("data/ALK_K4_220324.sav"))
+LAA_K4_MZP1 <- rio::import(here("data/LAA_MZP1_241023.csv"))
+SAB_K4_MZP1 <- rio::import(here("data/SAB_K4_110324.sav"))
+```
+
+
+```{r}
+############################################################################## #
+##### KODIERUNG DER TPK ITEMS IN RICHTIG/FALSCH                             ####
+##### (Bei LAA ist dies noch nicht codiert)                                    #
+############################################################################## #
+
+
+#### Skript 11a TPK-Test Kodierung ########################
+LAA_K4_MZP1 <- LAA_K4_MZP1 |> 
+  mutate(
+    tpksit1_2C = case_when( 
+      #Es wird ein Punkt vergeben, wenn die falsche Option NICHT ausgewählt wurde.
+      is.na(TPKSIT1_2) ~ 1,
+      TPKSIT1_2 == 1 ~ 0),
+    tpksit1_3C = case_when(
+      is.na(TPKSIT1_3) ~ 1,
+      TPKSIT1_3 == 1 ~ 0),
+    tpksit1_4C = case_when(
+      is.na(TPKSIT1_4) ~ 1,
+      TPKSIT1_4 == 1 ~ 0),
+    tpksit1_5C = case_when(
+      is.na(TPKSIT1_5) ~ 1,
+      TPKSIT1_5 == 1 ~ 0),
+    tpksit1_7C = case_when(
+      is.na(TPKSIT1_7) ~ 1,
+      TPKSIT1_7 == 1 ~ 0),
+    tpksit1_8C = case_when(
+      is.na(TPKSIT1_8) ~ 1,
+      TPKSIT1_8 == 1 ~ 0),
+    tpksit1_1C = case_when( 
+      #Es wird ein Punkt vergeben, wenn die richtige Option ausgewählt wurde.
+      TPKSIT1_1 == 1 ~ 1,
+      is.na(TPKSIT1_1) ~ 0),
+    tpksit1_6C = case_when(
+      TPKSIT1_6 == 1 ~ 1,
+      is.na(TPKSIT1_6) ~ 0),
+    
+    tpksit9_1C = case_when(
+      is.na(TPKSIT9_1) ~ 1,
+      TPKSIT9_1 == 1 ~ 0),
+    tpksit9_2C = case_when(
+      is.na(TPKSIT9_2) ~ 1,
+      TPKSIT9_2 == 1 ~ 0),
+    tpksit9_3C = case_when(
+      is.na(TPKSIT9_3) ~ 1,
+      TPKSIT9_3 == 1 ~ 0),
+    tpksit9_4C = case_when(
+      is.na(TPKSIT9_4) ~ 1,
+      TPKSIT9_4 == 1 ~ 0),
+    tpksit9_7C = case_when(
+      is.na(TPKSIT9_7) ~ 1,
+      TPKSIT9_7 == 1 ~ 0),
+    tpksit9_5C = case_when(
+      TPKSIT9_5 == 1 ~ 1,
+      is.na(TPKSIT9_5) ~ 0),
+    tpksit9_6C = case_when(
+      TPKSIT9_6 == 1 ~ 1,
+      is.na(TPKSIT9_6) ~ 0),
+    tpksit9_8C = case_when(
+      TPKSIT9_8 == 1 ~ 1,
+      is.na(TPKSIT9_8) ~ 0))
+#Codierung des TPK-Tests.
+
+
+# Subskala Situatives TPK Audio-Visuelle Technologie #####################
+LAA_K4_MZP1 <- LAA_K4_MZP1 |> 
+  mutate(
+    tpksit4_2C = case_when(
+      is.na(TPKSIT4_2) ~ 1,
+      TPKSIT4_2 == 1 ~ 0),
+    tpksit4_3C = case_when(
+      is.na(TPKSIT4_3) ~ 1,
+      TPKSIT4_3 == 1 ~ 0),
+    tpksit4_5C = case_when(
+      is.na(TPKSIT4_5) ~ 1,
+      TPKSIT4_5 == 1 ~ 0),
+    tpksit4_6C = case_when(
+      is.na(TPKSIT4_6) ~ 1,
+      TPKSIT4_6 == 1 ~ 0),
+    tpksit4_7C = case_when(
+      is.na(TPKSIT4_7) ~ 1,
+      TPKSIT4_7 == 1 ~ 0),
+    tpksit4_8C = case_when(
+      is.na(TPKSIT4_8) ~ 1,
+      TPKSIT4_8 == 1 ~ 0),
+    tpksit4_1C = case_when(
+      TPKSIT4_1 == 1 ~ 1,
+      is.na(TPKSIT4_1) ~ 0),
+    tpksit4_4C = case_when(
+      TPKSIT4_4 == 1 ~ 1,
+      is.na(TPKSIT4_4) ~ 0),
+    
+    tpksit10_2C = case_when(
+      is.na(TPKSIT10_2) ~ 1,
+      TPKSIT10_2 == 1 ~ 0),
+    tpksit10_3C = case_when(
+      is.na(TPKSIT10_3) ~ 1,
+      TPKSIT10_3 == 1 ~ 0),
+    tpksit10_6C = case_when(
+      is.na(TPKSIT10_6) ~ 1,
+      TPKSIT10_6 == 1 ~ 0),
+    tpksit10_7C = case_when(
+      is.na(TPKSIT10_7) ~ 1,
+      TPKSIT10_7 == 1 ~ 0),
+    tpksit10_8C = case_when(
+      is.na(TPKSIT10_8) ~ 1,
+      TPKSIT10_8 == 1 ~ 0),
+    tpksit10_1C = case_when(
+      TPKSIT10_1 == 1 ~ 1,
+      is.na(TPKSIT10_1) ~ 0),
+    tpksit10_4C = case_when(
+      TPKSIT10_4 == 1 ~ 1,
+      is.na(TPKSIT10_4) ~ 0),
+    tpksit10_5C = case_when(
+      TPKSIT10_5 == 1 ~ 1,
+      is.na(TPKSIT10_5) ~ 0),
+    
+    tpksit11_1C = case_when(
+      is.na(TPKSIT11_1) ~ 1,
+      TPKSIT11_1 == 1 ~ 0),
+    tpksit11_2C = case_when(
+      is.na(TPKSIT11_2) ~ 1,
+      TPKSIT11_2 == 1 ~ 0),
+    tpksit11_3C = case_when(
+      is.na(TPKSIT11_3) ~ 1,
+      TPKSIT11_3 == 1 ~ 0),
+    tpksit11_4C = case_when(
+      is.na(TPKSIT11_4) ~ 1,
+      TPKSIT11_4 == 1 ~ 0),
+    tpksit11_5C = case_when(
+      is.na(TPKSIT11_5) ~ 1,
+      TPKSIT11_5 == 1 ~ 0),
+    tpksit11_7C = case_when(
+      is.na(TPKSIT11_7) ~ 1,
+      TPKSIT11_7 == 1 ~ 0),
+    tpksit11_6C = case_when(
+      TPKSIT11_6 == 1 ~ 1,
+      is.na(TPKSIT11_6) ~ 0),
+    tpksit11_8C = case_when(
+      TPKSIT11_8 == 1 ~ 1,
+      is.na(TPKSIT11_8) ~ 0),
+    
+    tpksit12_2C = case_when(
+      is.na(TPKSIT12_2) ~ 1,
+      TPKSIT12_2 == 1 ~ 0),
+    tpksit12_4C = case_when(
+      is.na(TPKSIT12_4) ~ 1,
+      TPKSIT12_4 == 1 ~ 0),
+    tpksit12_6C = case_when(
+      is.na(TPKSIT12_6) ~ 1,
+      TPKSIT12_6 == 1 ~ 0),
+    tpksit12_7C = case_when(
+      is.na(TPKSIT12_7) ~ 1,
+      TPKSIT12_7 == 1 ~ 0),
+    tpksit12_1C = case_when(
+      TPKSIT12_1 == 1 ~ 1,
+      is.na(TPKSIT12_1) ~ 0),
+    tpksit12_3C = case_when(
+      TPKSIT12_3 == 1 ~ 1,
+      is.na(TPKSIT12_3) ~ 0),
+    tpksit12_5C = case_when(
+      TPKSIT12_5 == 1 ~ 1,
+      is.na(TPKSIT12_5) ~ 0),
+    tpksit12_8C = case_when(
+      TPKSIT12_8 == 1 ~ 1,
+      is.na(TPKSIT12_8) ~ 0))
+
+# Subskala Situatives TPK Text-Basierende Technologie #####################
+LAA_K4_MZP1 <- LAA_K4_MZP1 |> 
+  mutate(
+    tpksit2_1C = case_when(
+      is.na(TPKSIT2_1) ~ 1,
+      TPKSIT2_1 == 1 ~ 0),
+    tpksit2_3C = case_when(
+      is.na(TPKSIT2_3) ~ 1,
+      TPKSIT2_3 == 1 ~ 0),
+    tpksit2_4C = case_when(
+      is.na(TPKSIT2_4) ~ 1,
+      TPKSIT2_4 == 1 ~ 0),
+    tpksit2_7C = case_when(
+      is.na(TPKSIT2_7) ~ 1,
+      TPKSIT2_7 == 1 ~ 0),
+    tpksit2_2C = case_when(
+      TPKSIT2_2 == 1 ~ 1,
+      is.na(TPKSIT2_2) ~ 0),
+    tpksit2_5C = case_when(
+      TPKSIT2_5 == 1 ~ 1,
+      is.na(TPKSIT2_5) ~ 0),
+    tpksit2_6C = case_when(
+      TPKSIT2_6 == 1 ~ 1,
+      is.na(TPKSIT2_6) ~ 0),
+    tpksit2_8C = case_when(
+      TPKSIT2_8 == 1 ~ 1,
+      is.na(TPKSIT2_8) ~ 0),
+    
+    tpksit3_1C = case_when(
+      is.na(TPKSIT3_1) ~ 1,
+      TPKSIT3_1 == 1 ~ 0),
+    tpksit3_4C = case_when(
+      is.na(TPKSIT3_4) ~ 1,
+      TPKSIT3_4 == 1 ~ 0),
+    tpksit3_6C = case_when(
+      is.na(TPKSIT3_6) ~ 1,
+      TPKSIT3_6 == 1 ~ 0),
+    tpksit3_7C = case_when(
+      is.na(TPKSIT3_7) ~ 1,
+      TPKSIT3_7 == 1 ~ 0),
+    tpksit3_2C = case_when(
+      TPKSIT3_2 == 1 ~ 1,
+      is.na(TPKSIT3_2) ~ 0),
+    tpksit3_3C = case_when(
+      TPKSIT3_3 == 1 ~ 1,
+      is.na(TPKSIT3_3) ~ 0),
+    tpksit3_5C = case_when(
+      TPKSIT3_5 == 1 ~ 1,
+      is.na(TPKSIT3_5) ~ 0),
+    tpksit3_8C = case_when(
+      TPKSIT3_8 == 1 ~ 1,
+      is.na(TPKSIT3_8) ~ 0),
+    
+    tpksit7_1C = case_when(
+      is.na(TPKSIT7_1) ~ 1,
+      TPKSIT7_1 == 1 ~ 0),
+    tpksit7_4C = case_when(
+      is.na(TPKSIT7_4) ~ 1,
+      TPKSIT7_4 == 1 ~ 0),
+    tpksit7_6C = case_when(
+      is.na(TPKSIT7_6) ~ 1,
+      TPKSIT7_6 == 1 ~ 0),
+    tpksit7_7C = case_when(
+      is.na(TPKSIT7_7) ~ 1,
+      TPKSIT7_7 == 1 ~ 0),
+    tpksit7_2C = case_when(
+      TPKSIT7_2 == 1 ~ 1,
+      is.na(TPKSIT7_2) ~ 0),
+    tpksit7_3C = case_when(
+      TPKSIT7_3 == 1 ~ 1,
+      is.na(TPKSIT7_3) ~ 0),
+    tpksit7_5C = case_when(
+      TPKSIT7_5 == 1 ~ 1,
+      is.na(TPKSIT7_5) ~ 0),
+    tpksit7_8C = case_when(
+      TPKSIT7_8 == 1 ~ 1,
+      is.na(TPKSIT7_8) ~ 0))
+
+# Subskala Situatives TPK Adaptive-Assessment Technologie #####################
+LAA_K4_MZP1 <- LAA_K4_MZP1 |> 
+  mutate(
+    tpksit5_4C = case_when(
+      is.na(TPKSIT5_4) ~ 1,
+      TPKSIT5_4 == 1 ~ 0),
+    tpksit5_5C = case_when(
+      is.na(TPKSIT5_5) ~ 1,
+      TPKSIT5_5 == 1 ~ 0),
+    tpksit5_6C = case_when(
+      is.na(TPKSIT5_6) ~ 1,
+      TPKSIT5_6 == 1 ~ 0),
+    tpksit5_7C = case_when(
+      is.na(TPKSIT5_7) ~ 1,
+      TPKSIT5_7 == 1 ~ 0),
+    tpksit5_1C = case_when(
+      TPKSIT5_1 == 1 ~ 1,
+      is.na(TPKSIT5_1) ~ 0),
+    tpksit5_2C = case_when(
+      TPKSIT5_2 == 1 ~ 1,
+      is.na(TPKSIT5_2) ~ 0),
+    tpksit5_3C = case_when(
+      TPKSIT5_3 == 1 ~ 1,
+      is.na(TPKSIT5_3) ~ 0),
+    tpksit5_8C = case_when(
+      TPKSIT5_8 == 1 ~ 1,
+      is.na(TPKSIT5_8) ~ 0),
+    
+    tpksit6_1C = case_when(
+      is.na(TPKSIT6_1) ~ 1,
+      TPKSIT6_1 == 1 ~ 0),
+    tpksit6_6C = case_when(
+      is.na(TPKSIT6_6) ~ 1,
+      TPKSIT6_6 == 1 ~ 0),
+    tpksit6_7C = case_when(
+      is.na(TPKSIT6_7) ~ 1,
+      TPKSIT6_7 == 1 ~ 0),
+    tpksit6_8C = case_when(
+      is.na(TPKSIT6_8) ~ 1,
+      TPKSIT6_8 == 1 ~ 0),
+    tpksit6_2C = case_when(
+      TPKSIT6_2 == 1 ~ 1,
+      is.na(TPKSIT6_2) ~ 0),
+    tpksit6_3C = case_when(
+      TPKSIT6_3 == 1 ~ 1,
+      is.na(TPKSIT6_3) ~ 0),
+    tpksit6_4C = case_when(
+      TPKSIT6_4 == 1 ~ 1,
+      is.na(TPKSIT6_4) ~ 0),
+    tpksit6_5C = case_when(
+      TPKSIT6_5 == 1 ~ 1,
+      is.na(TPKSIT6_5) ~ 0),
+    
+    tpksit8_2C = case_when(
+      is.na(TPKSIT8_2) ~ 1,
+      TPKSIT8_2 == 1 ~ 0),
+    tpksit8_4C = case_when(
+      is.na(TPKSIT8_4) ~ 1,
+      TPKSIT8_4 == 1 ~ 0),
+    tpksit8_5C = case_when(
+      is.na(TPKSIT8_5) ~ 1,
+      TPKSIT8_5 == 1 ~ 0),
+    tpksit8_6C = case_when(
+      is.na(TPKSIT8_6) ~ 1,
+      TPKSIT8_6 == 1 ~ 0),
+    tpksit8_8C = case_when(
+      is.na(TPKSIT8_8) ~ 1,
+      TPKSIT8_8 == 1 ~ 0),
+    tpksit8_1C = case_when(
+      TPKSIT8_1 == 1 ~ 1,
+      is.na(TPKSIT8_1) ~ 0),
+    tpksit8_3C = case_when(
+      TPKSIT8_3 == 1 ~ 1,
+      is.na(TPKSIT8_3) ~ 0),
+    tpksit8_7C = case_when(
+      TPKSIT8_7 == 1 ~ 1,
+      is.na(TPKSIT8_7) ~ 0))
+
+# Subskala Konzeptuelles TPK Potentiale #####################
+LAA_K4_MZP1 <- LAA_K4_MZP1 |>
+  mutate(
+    tpkpot1_1C = case_when(
+      is.na(TPKPOT1_1) ~ 1,
+      TPKPOT1_1 == 1 ~ 0),
+    tpkpot1_3C = case_when(
+      is.na(TPKPOT1_3) ~ 1,
+      TPKPOT1_3 == 1 ~ 0),
+    tpkpot1_2C = case_when(
+      TPKPOT1_2 == 1 ~ 1,
+      is.na(TPKPOT1_2) ~ 0),
+    tpkpot1_4C = case_when(
+      TPKPOT1_4 == 1 ~ 1,
+      is.na(TPKPOT1_4) ~ 0),
+    
+    tpkpot2_2C = case_when(
+      is.na(TPKPOT2_2) ~ 1,
+      TPKPOT2_2 == 1 ~ 0),
+    tpkpot2_1C = case_when(
+      TPKPOT2_1 == 1 ~ 1,
+      is.na(TPKPOT2_1) ~ 0),
+    tpkpot2_3C = case_when(
+      TPKPOT2_3 == 1 ~ 1,
+      is.na(TPKPOT2_3) ~ 0),
+    tpkpot2_4C = case_when(
+      TPKPOT2_4 == 1 ~ 1,
+      is.na(TPKPOT2_4) ~ 0),
+    
+    tpkpot3_1C = case_when(
+      is.na(TPKPOT3_1) ~ 1,
+      TPKPOT3_1 == 1 ~ 0),
+    tpkpot3_3C = case_when(
+      is.na(TPKPOT3_3) ~ 1,
+      TPKPOT3_3 == 1 ~ 0),
+    tpkpot3_2C = case_when(
+      TPKPOT3_2 == 1 ~ 1,
+      is.na(TPKPOT3_2) ~ 0),
+    tpkpot3_4C = case_when(
+      TPKPOT3_4 == 1 ~ 1,
+      is.na(TPKPOT3_4) ~ 0),
+    
+    tpkpot4_3C = case_when(
+      is.na(TPKPOT4_3) ~ 1,
+      TPKPOT4_3 == 1 ~ 0),
+    tpkpot4_4C = case_when(
+      is.na(TPKPOT4_4) ~ 1,
+      TPKPOT4_4 == 1 ~ 0),
+    tpkpot4_1C = case_when(
+      TPKPOT4_1 == 1 ~ 1,
+      is.na(TPKPOT4_1) ~ 0),
+    tpkpot4_2C = case_when(
+      TPKPOT4_2 == 1 ~ 1,
+      is.na(TPKPOT4_2) ~ 0),
+    
+    tpkpot5_1C = case_when(
+      is.na(TPKPOT5_1) ~ 1,
+      TPKPOT5_1 == 1 ~ 0),
+    tpkpot5_4C = case_when(
+      is.na(TPKPOT5_4) ~ 1,
+      TPKPOT5_4 == 1 ~ 0),
+    tpkpot5_2C = case_when(
+      TPKPOT5_2 == 1 ~ 1,
+      is.na(TPKPOT5_2) ~ 0),
+    tpkpot5_3C = case_when(
+      TPKPOT5_3 == 1 ~ 1,
+      is.na(TPKPOT5_3) ~ 0))
+
+# Subskala Konzeptuelles TPK Prinzipien #####################
+LAA_K4_MZP1 <- LAA_K4_MZP1 |> 
+  mutate(
+    tpksup1_1C = case_when(
+      is.na(TPKSUP1_1) ~ 1,
+      TPKSUP1_1 == 1 ~ 0),
+    tpksup1_3C = case_when(
+      is.na(TPKSUP1_3) ~ 1,
+      TPKSUP1_3 == 1 ~ 0),
+    tpksup1_4C = case_when(
+      is.na(TPKSUP1_4) ~ 1,
+      TPKSUP1_4 == 1 ~ 0),
+    tpksup1_2C = case_when(
+      TPKSUP1_2 == 1 ~ 1,
+      is.na(TPKSUP1_2) ~ 0),
+    
+    tpksup2_3C = case_when(
+      is.na(TPKSUP2_3) ~ 1,
+      TPKSUP2_3 == 1 ~ 0),
+    tpksup2_4C = case_when(
+      is.na(TPKSUP2_4) ~ 1,
+      TPKSUP2_4 == 1 ~ 0),
+    tpksup2_1C = case_when(
+      TPKSUP2_1 == 1 ~ 1,
+      is.na(TPKSUP2_1) ~ 0),
+    tpksup2_2C = case_when(
+      TPKSUP2_2 == 1 ~ 1,
+      is.na(TPKSUP2_2) ~ 0),
+    
+    tpksup3_1C = case_when(
+      is.na(TPKSUP3_1) ~ 1,
+      TPKSUP3_1 == 1 ~ 0),
+    tpksup3_3C = case_when(
+      is.na(TPKSUP3_3) ~ 1,
+      TPKSUP3_3 == 1 ~ 0),
+    tpksup3_2C = case_when(
+      TPKSUP3_2 == 1 ~ 1,
+      is.na(TPKSUP3_2) ~ 0),
+    tpksup3_4C = case_when(
+      TPKSUP3_4 == 1 ~ 1,
+      is.na(TPKSUP3_4) ~ 0))
+
+
+#### Skript 11b TPK_Test Auswertung #########################
+LAA_K4_MZP1 <- LAA_K4_MZP1 |> 
+  mutate(
+    #Berechnung der Scores für die Subskalen & die Gesamtskala des situationalen TPK.
+    tpksit_score_av = (tpksit4_1C + tpksit4_2C + tpksit4_3C + tpksit4_4C + tpksit4_5C + 
+                       tpksit4_6C + tpksit4_7C + tpksit4_8C + tpksit10_1C +
+                       tpksit10_2C + tpksit10_3C + tpksit10_4C + tpksit10_5C + 
+                       tpksit10_6C + tpksit10_7C + tpksit10_8C + tpksit11_1C +
+                       tpksit11_2C + tpksit11_3C + tpksit11_4C + tpksit11_5C + 
+                       tpksit11_6C + tpksit11_7C + tpksit11_8C + tpksit12_1C +
+                       tpksit12_2C + tpksit12_3C + tpksit12_4C + tpksit12_5C + 
+                       tpksit12_6C + tpksit12_7C + tpksit12_8C) / 32 *100,
+    
+    tpksit_score_tb = (tpksit2_1C + tpksit2_2C + tpksit2_3C + tpksit2_4C + 
+                       tpksit2_5C + tpksit2_6C + tpksit2_7C + tpksit2_8C + 
+                       tpksit3_1C + tpksit3_2C + tpksit3_3C + tpksit3_4C + 
+                       tpksit3_5C + tpksit3_6C + tpksit3_7C + tpksit3_8C + 
+                       tpksit7_1C + tpksit7_2C + tpksit7_3C + tpksit7_4C + 
+                       tpksit7_5C + tpksit7_6C + tpksit7_7C + tpksit7_8C) /24 *100,
+    
+    tpksit_score_aa = (tpksit5_1C + tpksit5_2C + tpksit5_3C + tpksit5_4C + 
+                       tpksit5_5C + tpksit5_6C + tpksit5_7C + tpksit5_8C + 
+                       tpksit6_1C + tpksit6_2C + tpksit6_3C + tpksit6_4C + 
+                       tpksit6_5C + tpksit6_6C + tpksit6_7C + tpksit6_8C + 
+                       tpksit8_1C + tpksit8_2C + tpksit8_3C + tpksit8_4C + 
+                       tpksit8_5C + tpksit8_6C + tpksit8_7C + tpksit8_8C) /24 *100,
+    
+    tpksit_score = (tpksit2_1C + tpksit2_2C + tpksit2_3C + tpksit2_4C + 
+                    tpksit2_5C + tpksit2_6C + tpksit2_7C + tpksit2_8C + 
+                    tpksit3_1C + tpksit3_2C + tpksit3_3C + tpksit3_4C + 
+                    tpksit3_5C + tpksit3_6C + tpksit3_7C + tpksit3_8C + 
+                    tpksit4_1C + tpksit4_2C + tpksit4_3C + tpksit4_4C + 
+                    tpksit4_5C + tpksit4_6C + tpksit4_7C + tpksit4_8C + 
+                    tpksit5_1C + tpksit5_2C + tpksit5_3C + tpksit5_4C + 
+                    tpksit5_5C + tpksit5_6C + tpksit5_7C + tpksit5_8C + 
+                    tpksit6_1C + tpksit6_2C + tpksit6_3C + tpksit6_4C + 
+                    tpksit6_5C + tpksit6_6C + tpksit6_7C + tpksit6_8C + 
+                    tpksit7_1C + tpksit7_2C + tpksit7_3C + tpksit7_4C + 
+                    tpksit7_5C + tpksit7_6C + tpksit7_7C + tpksit7_8C + 
+                    tpksit8_1C + tpksit8_2C + tpksit8_3C + tpksit8_4C + 
+                    tpksit8_5C + tpksit8_6C + tpksit8_7C + tpksit8_8C + 
+                    tpksit10_1C + tpksit10_2C + tpksit10_3C + tpksit10_4C + 
+                    tpksit10_5C + tpksit10_6C + tpksit10_7C + tpksit10_8C + 
+                    tpksit11_1C + tpksit11_2C + tpksit11_3C + tpksit11_4C + 
+                    tpksit11_5C + tpksit11_6C + tpksit11_7C + tpksit11_8C + 
+                    tpksit12_1C + tpksit12_2C + tpksit12_3C + tpksit12_4C + 
+                    tpksit12_5C + tpksit12_6C + tpksit12_7C + tpksit12_8C) /80 *100)
+
+LAA_K4_MZP1 <- LAA_K4_MZP1 |> 
+  mutate(
+    #Berechnung der Scores für Subskalen & die Gesamtskala des konzeptuellen TPK.
+    tpkpot_score = (tpkpot1_1C + tpkpot1_2C + tpkpot1_3C + tpkpot1_4C + 
+                    tpkpot2_1C + tpkpot2_2C + tpkpot2_3C + tpkpot2_4C + 
+                    tpkpot3_1C + tpkpot3_2C + tpkpot3_3C + tpkpot3_4C + 
+                    tpkpot4_1C + tpkpot4_2C + tpkpot4_3C + tpkpot4_4C + 
+                    tpkpot5_1C + tpkpot5_2C + tpkpot5_3C + tpkpot5_4C) /20 *100,
+    
+    tpksup_score = (tpksup1_1C + tpksup1_2C + tpksup1_3C + tpksup1_4C + 
+                    tpksup2_1C + tpksup2_2C + tpksup2_3C + tpksup2_4C +
+                    tpksup3_1C + tpksup3_2C + tpksup3_3C + tpksup3_4C) /12 *100,
+    
+    tpkcon_score = (tpkpot1_1C + tpkpot1_2C + tpkpot1_3C + tpkpot1_4C + 
+                    tpkpot2_1C + tpkpot2_2C + tpkpot2_3C + tpkpot2_4C + 
+                    tpkpot3_1C + tpkpot3_2C + tpkpot3_3C + tpkpot3_4C + 
+                    tpkpot4_1C + tpkpot4_2C + tpkpot4_3C + tpkpot4_4C + 
+                    tpkpot5_1C + tpkpot5_2C + tpkpot5_3C + tpkpot5_4C +
+                    tpksup1_1C + tpksup1_2C + tpksup1_3C + tpksup1_4C + 
+                    tpksup2_1C + tpksup2_2C + tpksup2_3C + tpksup2_4C +
+                    tpksup3_1C + tpksup3_2C + tpksup3_3C + tpksup3_4C) /32 *100)
+```
+
+
+```{r}
+############################################################################## #
+##### BILDUNG EINES SCORES JE ITEM                                          ####
+############################################################################## #
+
+## LAA ####################################################################### #
+
+LAA_K4_MZP1 <- LAA_K4_MZP1 %>%
+  mutate(
+        # tpksit1 = rowMeans(data.frame(tpksit1_1C, tpksit1_2C, 
+        #                                tpksit1_3C, tpksit1_4C, 
+        #                                tpksit1_5C, tpksit1_6C, 
+        #                                tpksit1_7C, tpksit1_8C),
+        #                     na.rm = T),
+         tpksit2 = rowMeans(data.frame(tpksit2_1C, tpksit2_2C, 
+                                       tpksit2_3C, tpksit2_4C, 
+                                       tpksit2_5C, tpksit2_6C, 
+                                       tpksit2_7C, tpksit2_8C),
+                            na.rm = T),
+         tpksit3 = rowMeans(data.frame(tpksit3_1C, tpksit3_2C, 
+                                       tpksit3_3C, tpksit3_4C, 
+                                       tpksit3_5C, tpksit3_6C, 
+                                       tpksit3_7C, tpksit3_8C),
+                            na.rm = T),
+         tpksit4 = rowMeans(data.frame(tpksit4_1C, tpksit4_2C, 
+                                       tpksit4_3C, tpksit4_4C, 
+                                       tpksit4_5C, tpksit4_6C, 
+                                       tpksit4_7C, tpksit4_8C),
+                            na.rm = T),
+         tpksit5 = rowMeans(data.frame(tpksit5_1C, tpksit5_2C, 
+                                       tpksit5_3C, tpksit5_4C, 
+                                       tpksit5_5C, tpksit5_6C, 
+                                       tpksit5_7C, tpksit5_8C),
+                            na.rm = T),
+         tpksit6 = rowMeans(data.frame(tpksit6_1C, tpksit6_2C, 
+                                       tpksit6_3C, tpksit6_4C, 
+                                       tpksit6_5C, tpksit6_6C, 
+                                       tpksit6_7C, tpksit6_8C),
+                            na.rm = T),
+         tpksit7 = rowMeans(data.frame(tpksit7_1C, tpksit7_2C, 
+                                       tpksit7_3C, tpksit7_4C, 
+                                       tpksit7_5C, tpksit7_6C, 
+                                       tpksit7_7C, tpksit7_8C),
+                            na.rm = T),
+         tpksit8 = rowMeans(data.frame(tpksit8_1C, tpksit8_2C, 
+                                       tpksit8_3C, tpksit8_4C, 
+                                       tpksit8_5C, tpksit8_6C, 
+                                       tpksit8_7C, tpksit8_8C),
+                            na.rm = T),
+         tpksit10 = rowMeans(data.frame(tpksit10_1C, tpksit10_2C, 
+                                        tpksit10_3C, tpksit10_4C, 
+                                        tpksit10_5C, tpksit10_6C, 
+                                        tpksit10_7C, tpksit10_8C),
+                            na.rm = T),
+         tpksit11 = rowMeans(data.frame(tpksit11_1C, tpksit11_2C, 
+                                        tpksit11_3C, tpksit11_4C, 
+                                        tpksit11_5C, tpksit11_6C, 
+                                        tpksit11_7C, tpksit11_8C),
+                            na.rm = T),
+         tpksit12 = rowMeans(data.frame(tpksit12_1C, tpksit12_2C, 
+                                        tpksit12_3C, tpksit12_4C, 
+                                        tpksit12_5C, tpksit12_6C, 
+                                        tpksit12_7C, tpksit12_8C),
+                            na.rm = T),
+         tpkpot1 = rowMeans(data.frame(tpkpot1_1C, tpkpot1_2C, 
+                                       tpkpot1_3C, tpkpot1_4C ),
+                            na.rm = T),
+         tpkpot2 = rowMeans(data.frame(tpkpot2_1C, tpkpot2_2C, 
+                                        tpkpot2_3C, tpkpot2_4C ),
+                            na.rm = T),
+         tpkpot3 = rowMeans(data.frame(tpkpot3_1C, tpkpot3_2C, 
+                                        tpkpot3_3C, tpkpot3_4C),
+                            na.rm = T),
+         tpkpot4 = rowMeans(data.frame(tpkpot4_1C, tpkpot4_2C, 
+                                        tpkpot4_3C, tpkpot4_4C),
+                            na.rm = T),
+         tpkpot5 = rowMeans(data.frame(tpkpot5_1C, tpkpot5_2C, 
+                                        tpkpot5_3C, tpkpot5_4C),
+                            na.rm = T),
+         tpksup1 = rowMeans(data.frame(tpksup1_1C, tpksup1_2C, 
+                                        tpksup1_3C, tpksup1_4C),
+                            na.rm = T),
+         tpksup2 = rowMeans(data.frame(tpksup2_1C, tpksup2_2C, 
+                                        tpksup2_3C, tpksup2_4C),
+                            na.rm = T),
+         tpksup3 = rowMeans(data.frame(tpksup3_1C, tpksup3_2C, 
+                                        tpksup3_3C, tpksup3_4C),
+                            na.rm = T))
+
+
+
+## ALK ####################################################################### #
+
+ALK_K4_MZP1 <- ALK_K4_MZP1 %>%
+  mutate(tpksit2 = rowMeans(data.frame(tpksit2_1c_01K4, tpksit2_2c_01K4, 
+                                       tpksit2_3c_01K4, tpksit2_4c_01K4, 
+                                       tpksit2_5c_01K4, tpksit2_6c_01K4, 
+                                       tpksit2_7c_01K4, tpksit2_8c_01K4),
+                            na.rm = T),
+         tpksit3 = rowMeans(data.frame(tpksit3_1c_01K4, tpksit3_2c_01K4, 
+                                       tpksit3_3c_01K4, tpksit3_4c_01K4, 
+                                       tpksit3_5c_01K4, tpksit3_6c_01K4, 
+                                       tpksit3_7c_01K4, tpksit3_8c_01K4),
+                            na.rm = T),
+         tpksit4 = rowMeans(data.frame(tpksit4_1c_01K4, tpksit4_2c_01K4, 
+                                       tpksit4_3c_01K4, tpksit4_4c_01K4, 
+                                       tpksit4_5c_01K4, tpksit4_6c_01K4, 
+                                       tpksit4_7c_01K4, tpksit4_8c_01K4),
+                            na.rm = T),
+         tpksit5 = rowMeans(data.frame(tpksit5_1c_01K4, tpksit5_2c_01K4, 
+                                       tpksit5_3c_01K4, tpksit5_4c_01K4, 
+                                       tpksit5_5c_01K4, tpksit5_6c_01K4, 
+                                       tpksit5_7c_01K4, tpksit5_8c_01K4),
+                            na.rm = T),
+         tpksit6 = rowMeans(data.frame(tpksit6_1c_01K4, tpksit6_2c_01K4, 
+                                       tpksit6_3c_01K4, tpksit6_4c_01K4, 
+                                       tpksit6_5c_01K4, tpksit6_6c_01K4, 
+                                       tpksit6_7c_01K4, tpksit6_8c_01K4),
+                            na.rm = T),
+         tpksit7 = rowMeans(data.frame(tpksit7_1c_01K4, tpksit7_2c_01K4, 
+                                       tpksit7_3c_01K4, tpksit7_4c_01K4, 
+                                       tpksit7_5c_01K4, tpksit7_6c_01K4, 
+                                       tpksit7_7c_01K4, tpksit7_8c_01K4),
+                            na.rm = T),
+         tpksit8 = rowMeans(data.frame(tpksit8_1c_01K4, tpksit8_2c_01K4, 
+                                       tpksit8_3c_01K4, tpksit8_4c_01K4, 
+                                       tpksit8_5c_01K4, tpksit8_6c_01K4, 
+                                       tpksit8_7c_01K4, tpksit8_8c_01K4),
+                            na.rm = T),
+         tpksit10 = rowMeans(data.frame(tpksit10_1c_01K4, tpksit10_2c_01K4, 
+                                        tpksit10_3c_01K4, tpksit10_4c_01K4, 
+                                        tpksit10_5c_01K4, tpksit10_6c_01K4, 
+                                        tpksit10_7c_01K4, tpksit10_8c_01K4),
+                            na.rm = T),
+         tpksit11 = rowMeans(data.frame(tpksit11_1c_01K4, tpksit11_2c_01K4, 
+                                        tpksit11_3c_01K4, tpksit11_4c_01K4, 
+                                        tpksit11_5c_01K4, tpksit11_6c_01K4, 
+                                        tpksit11_7c_01K4, tpksit11_8c_01K4),
+                            na.rm = T),
+         tpksit12 = rowMeans(data.frame(tpksit12_1c_01K4, tpksit12_2c_01K4, 
+                                        tpksit12_3c_01K4, tpksit12_4c_01K4, 
+                                        tpksit12_5c_01K4, tpksit12_6c_01K4, 
+                                        tpksit12_7c_01K4, tpksit12_8c_01K4),
+                            na.rm = T),
+         tpkpot1 = rowMeans(data.frame(tpkpot1_1c_01K4, tpkpot1_2c_01K4, 
+                                       tpkpot1_3c_01K4, tpkpot1_4c_01K4 ),
+                            na.rm = T),
+         tpkpot2 = rowMeans(data.frame(tpkpot2_1c_01K4, tpkpot2_2c_01K4, 
+                                        tpkpot2_3c_01K4, tpkpot2_4c_01K4 ),
+                            na.rm = T),
+         tpkpot3 = rowMeans(data.frame(tpkpot3_1c_01K4, tpkpot3_2c_01K4, 
+                                        tpkpot3_3c_01K4, tpkpot3_4c_01K4),
+                            na.rm = T),
+         tpkpot4 = rowMeans(data.frame(tpkpot4_1c_01K4, tpkpot4_2c_01K4, 
+                                        tpkpot4_3c_01K4, tpkpot4_4c_01K4),
+                            na.rm = T),
+         tpkpot5 = rowMeans(data.frame(tpkpot5_1c_01K4, tpkpot5_2c_01K4, 
+                                        tpkpot5_3c_01K4, tpkpot5_4c_01K4),
+                            na.rm = T),
+         tpksup1 = rowMeans(data.frame(tpksup1_1c_01K4, tpksup1_2c_01K4, 
+                                        tpksup1_3c_01K4, tpksup1_4c_01K4),
+                            na.rm = T),
+         tpksup2 = rowMeans(data.frame(tpksup2_1c_01K4, tpksup2_2c_01K4, 
+                                        tpksup2_3c_01K4, tpksup2_4c_01K4),
+                            na.rm = T),
+         tpksup3 = rowMeans(data.frame(tpksup3_1c_01K4, tpksup3_2c_01K4, 
+                                        tpksup3_3c_01K4, tpksup3_4c_01K4),
+                            na.rm = T))
+
+
+## SAB ####################################################################### #
+
+SAB_K4_MZP1 <- SAB_K4_MZP1 %>%
+  mutate(tpksit2 = rowMeans(data.frame(tpksit2_1c_01K4, tpksit2_2c_01K4, 
+                                       tpksit2_3c_01K4, tpksit2_4c_01K4, 
+                                       tpksit2_5c_01K4, tpksit2_6c_01K4, 
+                                       tpksit2_7c_01K4, tpksit2_8c_01K4),
+                            na.rm = T),
+         tpksit3 = rowMeans(data.frame(tpksit3_1c_01K4, tpksit3_2c_01K4, 
+                                       tpksit3_3c_01K4, tpksit3_4c_01K4, 
+                                       tpksit3_5c_01K4, tpksit3_6c_01K4, 
+                                       tpksit3_7c_01K4, tpksit3_8c_01K4),
+                            na.rm = T),
+         tpksit4 = rowMeans(data.frame(tpksit4_1c_01K4, tpksit4_2c_01K4, 
+                                       tpksit4_3c_01K4, tpksit4_4c_01K4, 
+                                       tpksit4_5c_01K4, tpksit4_6c_01K4, 
+                                       tpksit4_7c_01K4, tpksit4_8c_01K4),
+                            na.rm = T),
+         tpksit5 = rowMeans(data.frame(tpksit5_1c_01K4, tpksit5_2c_01K4, 
+                                       tpksit5_3c_01K4, tpksit5_4c_01K4, 
+                                       tpksit5_5c_01K4, tpksit5_6c_01K4, 
+                                       tpksit5_7c_01K4, tpksit5_8c_01K4),
+                            na.rm = T),
+         tpksit6 = rowMeans(data.frame(tpksit6_1c_01K4, tpksit6_2c_01K4, 
+                                       tpksit6_3c_01K4, tpksit6_4c_01K4, 
+                                       tpksit6_5c_01K4, tpksit6_6c_01K4, 
+                                       tpksit6_7c_01K4, tpksit6_8c_01K4),
+                            na.rm = T),
+         tpksit7 = rowMeans(data.frame(tpksit7_1c_01K4, tpksit7_2c_01K4, 
+                                       tpksit7_3c_01K4, tpksit7_4c_01K4, 
+                                       tpksit7_5c_01K4, tpksit7_6c_01K4, 
+                                       tpksit7_7c_01K4, tpksit7_8c_01K4),
+                            na.rm = T),
+         tpksit8 = rowMeans(data.frame(tpksit8_1c_01K4, tpksit8_2c_01K4, 
+                                       tpksit8_3c_01K4, tpksit8_4c_01K4, 
+                                       tpksit8_5c_01K4, tpksit8_6c_01K4, 
+                                       tpksit8_7c_01K4, tpksit8_8c_01K4),
+                            na.rm = T),
+         tpksit10 = rowMeans(data.frame(tpksit10_1c_01K4, tpksit10_2c_01K4, 
+                                        tpksit10_3c_01K4, tpksit10_4c_01K4, 
+                                        tpksit10_5c_01K4, tpksit10_6c_01K4, 
+                                        tpksit10_7c_01K4, tpksit10_8c_01K4),
+                            na.rm = T),
+         tpksit11 = rowMeans(data.frame(tpksit11_1c_01K4, tpksit11_2c_01K4, 
+                                        tpksit11_3c_01K4, tpksit11_4c_01K4, 
+                                        tpksit11_5c_01K4, tpksit11_6c_01K4, 
+                                        tpksit11_7c_01K4, tpksit11_8c_01K4),
+                            na.rm = T),
+         tpksit12 = rowMeans(data.frame(tpksit12_1c_01K4, tpksit12_2c_01K4, 
+                                        tpksit12_3c_01K4, tpksit12_4c_01K4, 
+                                        tpksit12_5c_01K4, tpksit12_6c_01K4, 
+                                        tpksit12_7c_01K4, tpksit12_8c_01K4),
+                            na.rm = T),
+         tpkpot1 = rowMeans(data.frame(tpkpot1_1c_01K4, tpkpot1_2c_01K4, 
+                                       tpkpot1_3c_01K4, tpkpot1_4c_01K4 ),
+                            na.rm = T),
+         tpkpot2 = rowMeans(data.frame(tpkpot2_1c_01K4, tpkpot2_2c_01K4, 
+                                        tpkpot2_3c_01K4, tpkpot2_4c_01K4 ),
+                            na.rm = T),
+         tpkpot3 = rowMeans(data.frame(tpkpot3_1c_01K4, tpkpot3_2c_01K4, 
+                                        tpkpot3_3c_01K4, tpkpot3_4c_01K4),
+                            na.rm = T),
+         tpkpot4 = rowMeans(data.frame(tpkpot4_1c_01K4, tpkpot4_2c_01K4, 
+                                        tpkpot4_3c_01K4, tpkpot4_4c_01K4),
+                            na.rm = T),
+         tpkpot5 = rowMeans(data.frame(tpkpot5_1c_01K4, tpkpot5_2c_01K4, 
+                                        tpkpot5_3c_01K4, tpkpot5_4c_01K4),
+                            na.rm = T),
+         tpksup1 = rowMeans(data.frame(tpksup1_1c_01K4, tpksup1_2c_01K4, 
+                                        tpksup1_3c_01K4, tpksup1_4c_01K4),
+                            na.rm = T),
+         tpksup2 = rowMeans(data.frame(tpksup2_1c_01K4, tpksup2_2c_01K4, 
+                                        tpksup2_3c_01K4, tpksup2_4c_01K4),
+                            na.rm = T),
+         tpksup3 = rowMeans(data.frame(tpksup3_1c_01K4, tpksup3_2c_01K4, 
+                                        tpksup3_3c_01K4, tpksup3_4c_01K4),
+                            na.rm = T))
+```
+
+# Sit-Factor
+
+::: panel-tabset
+
+## Reliability
+
+```{r}
+psych::omega(LAA_K4_MZP1%>%dplyr::select(tpksit2:tpksit12), nfactors = 3)
+```
+
+> Reliability is not good.
+
+```{r}
+# Omega without the subscale AV
+psych::omega(LAA_K4_MZP1%>%dplyr::select(tpksit2,
+                                         tpksit3,
+                                         #tpksit4,
+                                         tpksit5,
+                                         tpksit6,
+                                         tpksit7,
+                                         tpksit8#,
+                                         #tpksit10,
+                                         #tpksit11,
+                                         #tpksit12
+                                 ), nfactors = 2)
+```
+
+> And can't be improved by deleting, e.g. a subscale.
+
+
+## CFAs
+
+
+```{r}
+model <- '
+          tpk_sit =~ tpksit2 +
+                     tpksit3 +
+                     tpksit4 +
+                     tpksit5 +
+                     tpksit6 +
+                     tpksit7 +
+                     tpksit8 +
+                     tpksit10 +
+                     tpksit11 +
+                     tpksit12
+         '
+
+fit <- lavaan::cfa(model, LAA_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+CFA shows not-so-good fit. But can be greatly improved by deleting the subscale AV.
+
+```{r}
+model <- '
+          tpk_sit =~ tpksit2 +
+                     tpksit3 +
+                     #tpksit4 +
+                     tpksit5 +
+                     tpksit6 +
+                     tpksit7 +
+                     tpksit8 #+
+                     #tpksit10 +
+                     #tpksit11 +
+                     #tpksit12
+         '
+
+fit <- lavaan::cfa(model, LAA_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+
+## ALK
+
+Same works with ALK, there, also the reliability is improved.
+
+```{r}
+psych::omega(ALK_K4_MZP1%>%dplyr::select(tpksit2:tpksit12), nfactors = 3)
+```
+Reliability is meh.  
+
+Weakest items are `tpksit4`, `tpksit10` and , `tpksit11`. They are all from the subscale AV. If we delete one more item (`tpksit12`) we could delete the entire subscale.  
+
+
+```{r}
+# Omega without the subscale AV
+psych::omega(ALK_K4_MZP1%>%dplyr::select(tpksit2,
+                                 tpksit3,
+                                 #tpksit4,
+                                 tpksit5,
+                                 tpksit6,
+                                 tpksit7,
+                                 tpksit8#,
+                                 #tpksit10,
+                                 #tpksit11,
+                                 #tpksit12
+                                 ), nfactors = 2)
+```
+
+
+```{r}
+model <- '
+          tpk_sit =~ tpksit2 +
+                     tpksit3 +
+                     #tpksit4 +
+                     tpksit5 +
+                     tpksit6 +
+                     tpksit7 +
+                     tpksit8 #+
+                     #tpksit10 +
+                     #tpksit11 +
+                     #tpksit12
+         '
+
+fit <- lavaan::cfa(model, ALK_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+## SAB
+
+Same works with SAB, there, also the reliability is improved.
+
+```{r}
+psych::omega(SAB_K4_MZP1%>%dplyr::select(tpksit2:tpksit12), nfactors = 3)
+```
+Reliability is meh.  
+
+If we delete the subscale AV: 
+
+
+```{r}
+# Omega without the subscale AV
+psych::omega(SAB_K4_MZP1%>%dplyr::select(tpksit2,
+                                 tpksit3,
+                                 #tpksit4,
+                                 tpksit5,
+                                 tpksit6,
+                                 tpksit7,
+                                 tpksit8#,
+                                 #tpksit10,
+                                 #tpksit11,
+                                 #tpksit12
+                                 ), nfactors = 2)
+```
+
+\
+
+This model also delivers good fit.
+
+```{r}
+model <- '
+          tpk_sit =~ tpksit2 +
+                     tpksit3 +
+                     #tpksit4 +
+                     tpksit5 +
+                     tpksit6 +
+                     tpksit7 +
+                     tpksit8 #+
+                     #tpksit10 +
+                     #tpksit11 +
+                     #tpksit12
+         '
+
+fit <- lavaan::cfa(model, SAB_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+
+## My recommendation
+
+(from a statistical point of view)
+
+* Note: Maybe the measurement models are not equal over the groups?
+* We can improve fit greatly, when deleting the subscale AV
+* We should first check if there are Items that seem "old" and check if deleting them would improve reliability and fit
+  - I feel like the only item building on "dated" concepts is item 1, which isn't part of any scale anyway
+
+:::
+
+
+
+
+
+
+
+# Con-Factor
+
+::: panel-tabset
+
+## Reliability
+
+```{r}
+psych::omega(LAA_K4_MZP1%>%dplyr::select(tpkpot1:tpksup3), nfactors = 2)
+```
+
+> Reliability is not good.
+
+```{r}
+# Omega without the subscale AV
+psych::omega(LAA_K4_MZP1%>%dplyr::select(tpkpot1,
+                                         tpkpot2,
+                                         tpkpot3,
+                                         #tpkpot4,
+                                         tpkpot5#,
+                                         # tpksup1,
+                                         #tpksup2#,
+                                         # tpksup3
+                                 ), nfactors = 1)
+```
+
+> And can't be improved by deleting, e.g. a subscale.
+
+
+## CFAs
+
+
+```{r}
+model <- '
+          tpk_con =~ tpkpot1 +
+                     tpkpot2 +
+                     tpkpot3 +
+                     tpkpot4 +
+                     tpkpot5 +
+                     tpksup1 +
+                     tpksup2 +
+                     tpksup3
+         '
+
+fit <- lavaan::cfa(model, LAA_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+CFA shows fit concerning CFI and TLI is not good. But can be greatly improved by deleting the subscale `sup` and item `tpkpot4` from the `pot` subscale.
+
+```{r}
+model <- '
+          tpk_con =~ tpkpot1 +
+                     tpkpot2 +
+                     tpkpot3 +
+                     #tpkpot4 +
+                     tpkpot5 #+
+                     #tpksup1 +
+                     #tpksup2 +
+                     #tpksup3
+         '
+
+fit <- lavaan::cfa(model, LAA_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+
+## ALK
+
+Same works with ALK, there, also the reliability is improved.
+
+```{r}
+psych::omega(ALK_K4_MZP1%>%dplyr::select(tpkpot1:tpksup3), nfactors = 2)
+```
+Reliability is very bad.  
+
+Can be improved, deleting the subscale `sup` and item `tpkpot4` from the `pot` subscale.
+
+
+```{r}
+# Omega without the subscale AV
+psych::omega(ALK_K4_MZP1%>%dplyr::select(tpkpot1,
+                                         tpkpot2,
+                                         tpkpot3,
+                                         #tpkpot4,
+                                         tpkpot5#,
+                                         #tpksup1,
+                                         #tpksup2,
+                                         #tpksup3
+                                 ), nfactors = 1)
+```
+
+\
+
+This model also delivers good fit.
+
+```{r}
+model <- '
+          tpk_con =~ tpkpot1 +
+                     tpkpot2 +
+                     tpkpot3 +
+                     #tpkpot4 +
+                     tpkpot5 #+
+                     #tpksup1 +
+                     #tpksup2 +
+                     #tpksup3
+         '
+
+fit <- lavaan::cfa(model, ALK_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+## SAB
+
+Same works with SAB, there, also the reliability is improved.
+
+```{r}
+psych::omega(SAB_K4_MZP1%>%dplyr::select(tpkpot1:tpksup3), nfactors = 2)
+```
+Reliability is meh.  
+
+Can **not** be improved, deleting the subscale `sup` and item `tpkpot4` from the `pot` subscale.
+
+
+```{r}
+# Omega without the subscale AV
+psych::omega(SAB_K4_MZP1%>%dplyr::select(tpkpot1,
+                                         tpkpot2,
+                                         tpkpot3,
+                                         #tpkpot4,
+                                         tpkpot5#,
+                                         #tpksup1,
+                                         #tpksup2,
+                                         #tpksup3
+                                 ), nfactors = 1)
+```
+
+\
+
+This model also delivers good fit.
+
+```{r}
+model <- '
+          tpk_con =~ tpkpot1 +
+                     tpkpot2 +
+                     tpkpot3 +
+                     # tpkpot4 +
+                     tpkpot5 #+
+                     # tpksup1 +
+                     # tpksup2 +
+                     # tpksup3
+         '
+
+fit <- lavaan::cfa(model, SAB_K4_MZP1)
+summary(fit, fit.measures = TRUE)
+```
+
+
+## My recommendation
+
+(from a statistical point of view)
+
+* Note: Maybe the measurement models are not equal over the groups?
+* We can improve fit greatly, when deleting the subscale `sub` and item `tpkpot4` from subscale `pot`
+* We should first check if there are Items that seem "old" and check if deleting them would improve reliability and fit
+  - ...
+
+:::
+
+
+
+# Computational environment
+
+## Packages
+
+```{r}
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+
+## R Version
+
+```{r}
+R.Version()
+```
+
+
