@@ -944,8 +944,9 @@ nrw_p <- nrw |>
 ggplot(nrw_p, aes(x=gruppe, y = value)) +
   stat_summary(geom = "col", fun = mean, alpha = .8, 
                position = position_dodge(), fill = "#440d53") +
-  # scale_x_discrete(labels = c("ALK",
-  #                             "SAB")) +
+  scale_x_discrete(labels = c("LAA",
+                              "ALK",
+                              "SAB")) +
   scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
   coord_cartesian(ylim=c(1,4.2),
                   expand = F) +
