@@ -49,15 +49,16 @@ library(ggpubr)
 ## Import data
 
 ```{r import data sets}
-# k1k2 <- rio::import(here("data/07_LSI_MZP123456_Lehramtneu_UTF-8.csv"))
 k1k2 <- rio::import(here("data/07_LSI_MZP123456_Lehramtneu_Unicode.sav"))
-# k1k2_laa_mzp1 <- rio::import(here("data/BilWiss_MZP1.sav"))
 
-k3_laa <- rio::import(here("data/LAA_K3_2024-04-11.sav")) # K3 der LAA MZP 1 und MZP 2
+k3_laa <- rio::import(here("data/LAA_K3_110424.sav")) # K3 der LAA MZP 1 und MZP 2
+k3_alk_mzp1 <- rio::import(here("data/01_Datensatz_ALK_MZP1_040422_lokaleCodierung.sav")) # K3 der ALK MZP 1
+k3_sab_mzp1 <- rio::import(here("data/01_Datensatz_SAB_MZP1_200422.sav")) # K3 der SAB MZP 1
+k3_sab_mzp2 <- rio::import(here("data/01_Datensatz_SAB_MZP2_4.4.22.sav")) # K3 der SAB MZP 2
 
-k4_laa_mzp1 <- rio::import(here("data/LAA_K4_MZP1_2024-04-15.sav")) # K4 der LAA aus MZP 1
-k4_alk_mzp1 <- rio::import(here("data/ALK_K4_MZP1_2024-05-22.sav")) # K4 der ALK aus MZP 1
-k4_sab_mzp1 <- rio::import(here("data/SAB_K4_MZP1_2024-03-11.sav")) # K4 der SAB aus MZP 1
+k4_laa_mzp1 <- rio::import(here("data/LAA_K4_110724.sav")) # K4 der LAA aus MZP 1
+k4_alk_mzp1 <- rio::import(here("data/ALK_K4_170724.sav")) # K4 der ALK aus MZP 1
+k4_sab_mzp1 <- rio::import(here("data/SAB_K4_130624.sav")) # K4 der SAB aus MZP 1
 ```
 
 Alle genutzten Daten entstammen den MZP 1 der jeweiligen Kohorten.
@@ -3087,6 +3088,20 @@ nrw %>%
   {table(.$gruppe, .$kohorte)}
 ```
 :::
+
+
+# Schriftlicher Zwischenbericht
+
+```{r}
+k3_sab_mzp2 %>%
+  dplyr::mutate(zszf_4k_02_agree = ifelse(zszf_4k_02 >= 3, 1, 0)) %>%
+  dplyr::summarise(zszf_4k_02_agree = mean(zszf_4k_02_agree, na.rm = T))
+
+
+k3_laa %>%
+  dplyr::mutate(zszf_4k_agree = ifelse(zszf_4_02 >= 3, 1, 0)) %>%
+  dplyr::summarise(zszf_4k_agree = mean(zszf_4k_agree, na.rm = T))
+```
 
 
 
