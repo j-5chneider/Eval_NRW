@@ -44,6 +44,7 @@ library(lsmeans)
 library(effsize)
 library(ggridges)
 library(kableExtra)
+library(ggstats)
 ```
 
 
@@ -156,13 +157,16 @@ Auswahl der Skalen und wrangling der Daten.
 ```{r}
 ## MZP 1 #######################################################################
 k4_laa_mzp1_clean <- k4_laa_mzp1 |>
-  dplyr::select(seffic_01K4, bel_01K4, rfbe_01K4) |>
+  dplyr::select(seffic_01K4, bel_01K4, rfbe_01K4#, 
+                # code_01_01K4
+                ) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
-  dplyr::rename(c()) |>
-  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+  # dplyr::rename(c(code = code_01)) |>
+  dplyr::mutate(id = 1:length(seffic), # simply for pivot
+                kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
                 gruppe = as.factor("laa"),   # Variable zur Unterscheidung der Gruppen
                 mzp = as.factor("1")) |>     # Variable zur Unterscheidung der MZP
-  pivot_longer(-c(kohorte, gruppe, mzp), names_to = "variable", values_to = "value")
+  pivot_longer(-c(kohorte, gruppe, mzp, id), names_to = "variable", values_to = "value")
 
 
 ## MZP 2 #######################################################################
@@ -175,13 +179,15 @@ k4_laa_mzp2_clean <- k4_laa_mzp2 |>
                 ubqual_ftb, ubqual_ebf, ubqual_ibno, ubqual_lob,
                 seffic, bel, bew_bs2, bew_bs1, bew_bs3, bew_lzb1, bew_lzb2,
                 bew_rap, epg_epg34l, lg_13l, ubnue_1, rfbe,
-                zszf_qualalk, zszf_qualsab, zszf
+                zszf_qualalk, zszf_qualsab, zszf#,
+                # code_02
                 ) |>
-  dplyr::rename(c()) |>
-  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+  # dplyr::rename(c(code = code_02)) |>
+  dplyr::mutate(id = 1:length(ubzeit1), # simply for pivot
+                kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
                 gruppe = as.factor("laa"),   # Variable zur Unterscheidung der Gruppen
                 mzp = as.factor("2")) |>     # Variable zur Unterscheidung der MZP
-  pivot_longer(-c(kohorte, gruppe, mzp), names_to = "variable", values_to = "value")
+  pivot_longer(-c(kohorte, gruppe, mzp, id), names_to = "variable", values_to = "value")
 ```
 
 
@@ -223,14 +229,17 @@ k4_laa_mzp2_clean <- k4_laa_mzp2 |>
 ```{r}
 ## MZP 1 #######################################################################
 k4_alk_mzp1_clean <- k4_alk_mzp1 |>
-  dplyr::select(ubvorB1X_01K4, INNO_01K4, zszf_4_01K4:zszf_7_01K4) |>
+  dplyr::select(ubvorB1X_01K4, INNO_01K4, zszf_4_01K4:zszf_7_01K4#,
+                # code_01_01K4
+                ) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
-  dplyr::rename(c()) |>
-  dplyr::mutate(zszf = rowMeans(data.frame(zszf_4, zszf_5, zszf_6, zszf_7), na.rm = T),
+  # dplyr::rename(c(code = code_01)) |>
+  dplyr::mutate(id = 1:length(ubvorB1X), # simply for pivot
+                zszf = rowMeans(data.frame(zszf_4, zszf_5, zszf_6, zszf_7), na.rm = T),
                 kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
                 gruppe = as.factor("alk"),   # Variable zur Unterscheidung der Gruppen
                 mzp = as.factor("1")) |>     # Variable zur Unterscheidung der MZP
-  pivot_longer(-c(kohorte, gruppe, mzp), names_to = "variable", values_to = "value")
+  pivot_longer(-c(kohorte, gruppe, mzp, id), names_to = "variable", values_to = "value")
 ```
 
 
@@ -270,13 +279,17 @@ k4_alk_mzp1_clean <- k4_alk_mzp1 |>
 ```{r}
 ## MZP 1 #######################################################################
 k4_sab_mzp1_clean <- k4_sab_mzp1 |>
-  dplyr::select(INNO_01K4, zszf_4_01K4:zszf_7_01K4) |>
+  dplyr::select(INNO_01K4, zszf_4_01K4:zszf_7_01K4#, 
+                # code_01_01K4
+                ) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
-  dplyr::mutate(zszf = rowMeans(data.frame(zszf_4, zszf_5, zszf_6, zszf_7), na.rm = T),
+  # dplyr::rename(c(code = code_01)) |>
+  dplyr::mutate(id = 1:length(INNO), # simply for pivot
+                zszf = rowMeans(data.frame(zszf_4, zszf_5, zszf_6, zszf_7), na.rm = T),
                 kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
                 gruppe = as.factor("sab"),   # Variable zur Unterscheidung der Gruppen
                 mzp = as.factor("1")) |>     # Variable zur Unterscheidung der MZP
-  pivot_longer(-c(kohorte, gruppe, mzp), names_to = "variable", values_to = "value")
+  pivot_longer(-c(kohorte, gruppe, mzp, id), names_to = "variable", values_to = "value")
 
 
 ## MZP 2 #######################################################################
@@ -284,12 +297,16 @@ k4_sab_mzp2_clean <- k4_sab_mzp2 |>
   dplyr::select(ubqual_ftb, ubqual_ebf, ubqual_ibno, ubqual_lob,
                 bew_bs2, bew_bs1, bew_bs3, bew_lzb1, bew_lzb2, 
                 seffsab_pp, seffsab_pr,
-                neuans_4, koop_1, koop_2, neuans_2
+                neuans_4, koop_1, koop_2, neuans_2,
+                ub_son, ub_au8#,
+                # code_01
                 ) |>
-  dplyr::mutate(kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
+  # dplyr::rename(c(code = code_01)) |>
+  dplyr::mutate(id = 1:length(ubqual_ftb), # simply for pivot
+                kohorte = as.factor("4"),    # Variable zur Unterscheidung der Kohorten
                 gruppe = as.factor("sab"),   # Variable zur Unterscheidung der Gruppen
                 mzp = as.factor("2")) |>     # Variable zur Unterscheidung der MZP
-  pivot_longer(-c(kohorte, gruppe, mzp), names_to = "variable", values_to = "value")
+  pivot_longer(-c(kohorte, gruppe, mzp, id), names_to = "variable", values_to = "value")
 ```
 
 ## Matching
@@ -364,6 +381,7 @@ ggplot(nrw_p, aes(x = value, y = variable, fill = variable)) +
   scale_color_manual(values = c("#8e6d97",
                                 "#693d75",
                                 "#440d53")) +
+  coord_cartesian(xlim = c(0, 60)) +
   xlab("Stunden") +
   ylab("") +
   labs(title = "Zeitaufwand für die LAA",
@@ -385,8 +403,10 @@ ggplot(nrw_p, aes(x = value, y = variable, fill = variable)) +
 ```{r}
 ## Median ######################################################################
 table_ub <- nrw_p |>
+  dplyr::filter(variable %in% c("ubvorB1X", "ubzeit1", "ubzeit2")) |>
   group_by(variable) |>
-  dplyr::summarize(median = median(value, na.rm = TRUE)) |>
+  dplyr::summarize(median = median(value, na.rm = TRUE),
+                   mean = mean(value, na.rm = TRUE)) |>
   dplyr::mutate(variable = case_when(
     variable == "ubvorB1X" ~ "ALK: Unterrichtsbesuch\n(Beginn des VD)",
     variable == "ubzeit1" ~ "LAA: Unterrichtsbesuch",
@@ -446,6 +466,37 @@ rm(nrw_p)
 
 
 ```{r}
+#| fig-height: 3
+
+nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("ub2_son2")) |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  dplyr::select(value) |>
+  dplyr::rename("Rückblickend waren die Unterrichtsbesuche nicht so schlimm, wie ich erwartet habe." = value)
+
+nrw_p |>
+  gglikert(y_label_wrap = 26,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  # scale_fill_manual(values = c("#00306f", "#565c6d", "#b0a473", "#f0d853")) +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 18))
+
+rm(nrw_p)
+```
+
+
+
+```{r}
 nrw_p <- nrw |>
   dplyr::filter(variable %in% c("ub2_son1"))
 
@@ -456,13 +507,44 @@ ggplot(nrw_p, aes(x=value)) +
   xlab("") +
   ylab("Häufigkeit") +
   labs(title = "Die Planung macht den Unterrichtsbesuch",
-       subtitle = "zur Belastung, nicht die Situation selbst. ",
+       subtitle = "zur Belastung, nicht die Situation selbst.",
        caption = "") +
   theme_minimal(base_size = 14) +
   theme(panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         legend.position = "none")
+
+rm(nrw_p)
+```
+
+
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("ub2_son1", "ub_son", "ub_au8")) |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  pivot_wider(id_cols = c(id, kohorte, gruppe, mzp), names_from = "variable", values_from = "value") |>
+  dplyr::select(ub2_son1, ub_son, ub_au8) |>
+  dplyr::rename("LAA: Die Planung macht den Unterrichtsbesuch zur Belastung, nicht die Situation selbst." = ub2_son1, 
+                "SAB: Die Planung macht den Unterrichtsbesuch zur Belastung, nicht die Situation selbst." = ub_son,
+                "SAB: Alternativen zur schriftlichen Unter- richtsplanung sind normal." = ub_au8)
+
+nrw_p |>
+  gglikert(y_label_wrap = 26,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  # scale_fill_manual(values = c("#00306f", "#565c6d", "#b0a473", "#f0d853")) +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 18))
 
 rm(nrw_p)
 ```
@@ -547,11 +629,34 @@ nrw_p <- nrw |>
                                              "Unterrichtsbesuche")))
 
 
+ggplot(nrw_p, aes(x=variable, y = value)) +
+  stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
+  geom_hline(yintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
+  # scale_y_discrete() +
+  scale_y_continuous(breaks = c(1,2,3,4), labels = c("nicht\nbelastend", "", "", "sehr\nbelastend"), expand = c(0,0)) +
+  coord_cartesian(ylim=c(1,4.2),
+                  expand = F) +
+  xlab("") +
+  ylab("") +
+  labs(title = "Belastungsquellen ",
+       subtitle = "",
+       caption = "") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none",
+        # axis.text.y = element_text(margin = margin(t = 20)),
+        axis.text.x=element_text(angle = 70, hjust = 1)
+        )
+
+
 ggplot(nrw_p, aes(x=value, y = variable)) +
   stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
+  geom_vline(xintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
   # scale_y_discrete() +
   scale_x_continuous(breaks = c(1,2,3,4), labels = c("nicht\nbelastend", "", "", "sehr\nbelastend"), expand = c(0,0)) +
-  coord_cartesian(xlim=c(1,4.2),
+  coord_cartesian(xlim=c(1,4.3),
                   expand = F) +
   xlab("") +
   ylab("") +
@@ -563,7 +668,8 @@ ggplot(nrw_p, aes(x=value, y = variable)) +
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         legend.position = "none",
-        axis.text.x = element_text(margin = margin(t = 20)))
+        axis.text.y = element_text(margin = margin(t = 20))
+        )
 
 rm(nrw_p)
 ```
@@ -593,6 +699,36 @@ ggplot(nrw_p, aes(x=value, y = variable)) +
 
 rm(nrw_p)
 ```
+
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("ubnue_3", "ubnue_4")) |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  pivot_wider(id_cols = c(id, kohorte, gruppe, mzp), names_from = "variable", values_from = "value") |>
+  dplyr::select(ubnue_3, ubnue_4) |>
+  dplyr::rename("Ich empfand die Unterrichtsbesuche hilfreich." = ubnue_3, 
+                "Die Unterrichtsbesuche haben mich gelehrt den mit bestmöglichem Unterricht vorzubereiten." = ubnue_4)
+
+nrw_p |>
+  gglikert(y_label_wrap = 26,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  # scale_fill_manual(values = c("#00306f", "#565c6d", "#b0a473", "#f0d853")) +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 18))
+
+rm(nrw_p)
+```
+
 
 
 ### Bewertung vs. Ausbildung
@@ -649,6 +785,36 @@ ggplot(nrw_p, aes(x=value, y = variable)) +
 
 rm(nrw_p)
 ```
+
+```{r}
+#| fig-height: 3
+
+nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("ub1_au1")) |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  dplyr::select(value) |>
+  dplyr::rename("UB waren ein angemessenes Abbild meines Unterrichts" = value)
+
+nrw_p |>
+  gglikert(y_label_wrap = 26,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  # scale_fill_manual(values = c("#00306f", "#565c6d", "#b0a473", "#f0d853")) +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 18))
+
+rm(nrw_p)
+```
+
 
 
 ### Kriterien für das Feedback
