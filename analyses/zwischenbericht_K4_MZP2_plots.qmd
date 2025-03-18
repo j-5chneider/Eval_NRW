@@ -1321,7 +1321,7 @@ ggplot(nrw_p, aes(x=gruppe, y = value, fill = gruppe, color = gruppe)) +
 rm(nrw_p)
 ```
 
-### Kooperation SAB und ALK: Seminargestaltung
+### Innovationsbereitschaft
 
 ```{r}
 nrw_p <- nrw |>
@@ -1417,37 +1417,6 @@ rm(nrw_p)
 ```
 
 
-
-### Innovationsbereitschaft
-
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("INNO"))
-
-ggplot(nrw_p, aes(x=variable, y = value, group = gruppe, fill = gruppe, color = gruppe)) +
-  stat_summary(geom = "col", fun = mean, alpha = .8, position = position_dodge()) +
-  stat_summary(linewidth = 1, geom = "errorbar", 
-               width = .25, position = position_dodge(width = .9)) +
-  scale_x_discrete(labels = c("Konstruktivistisch",
-                              "Transmissiv")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
-                  expand = F) +
-  scale_fill_manual(values = c("#37b877", "#34608d"), name = "", labels = c("ALK", "SAB")) +
-  scale_color_manual(values = c("#37b877", "#34608d"), name = "", labels = c("ALK", "SAB")) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Überzeugungen über das Lernen und Lehren",
-       subtitle = "",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
-
-rm(nrw_p)
-```
 
 
 # Computational environment
