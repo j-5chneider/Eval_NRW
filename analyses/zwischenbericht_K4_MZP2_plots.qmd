@@ -237,7 +237,8 @@ k4_alk_mzp1_clean <- k4_alk_mzp1 |>
   dplyr::select(ubvorB1X_01K4, INNO_01K4, zszf_4_01K4:zszf_7_01K4,
                 # code_01_01K4,
                 AUNLT_01K4, AUNL_01K4, INNO_01K4,
-                soz_1_01K4, soz_2_01K4, soz_3_01K4
+                soz_1_01K4, soz_2_01K4, soz_3_01K4,
+                ub_8_01K4
                 ) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
   dplyr::rename(c(uebr = AUNLT,
@@ -310,7 +311,7 @@ k4_sab_mzp2_clean <- k4_sab_mzp2 |>
                 neuans_4, koop_1, koop_2, neuans_2,
                 ub_son, ub_au8,
                 # code_01,
-                ub_au1
+                ub_au1, ub_nue1
                 ) |>
   # dplyr::rename(c(code = code_01)) |>
   dplyr::mutate(id = 1:length(ubqual_ftb), # simply for pivot
@@ -370,7 +371,7 @@ likert_labels <- c("trifft\nnicht zu", "", "", "trifft\nzu")
 
 ```{r}
 nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ub_7", "ub_8", "ub_1")) |>
+  dplyr::filter(variable %in% c("ub_7", "ub_8", "ub_1") & gruppe == "laa") |>
   dplyr::mutate(value = factor(value,
                                levels = c(1,2,3,4),
                                labels = c("trifft nicht zu",
@@ -924,21 +925,23 @@ rm(nrw_p)
 ```
 \
 
-**Perspektive der SAB:**
+**Perspektive der SAB & ALK:**
 
 ```{r}
-#| fig-height: 3
 
 nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ub_au1")) |>
+  dplyr::filter(variable %in% c("ub_au1", "ub_nue1", "ub_8") & gruppe != "laa") |>
   dplyr::mutate(value = factor(value,
                                levels = c(1,2,3,4),
                                labels = c("trifft nicht zu",
                                           " ",
                                           "  ",
                                           "trifft zu"))) |>
-  dplyr::select(value) |>
-  dplyr::rename("Unterrichtsbesuche sind ein angemessenes Abbild des Unterrichts einer Lehramtsanwärter_in" = value)
+  pivot_wider(id_cols = c(id, kohorte, gruppe, mzp), names_from = "variable", values_from = "value") |>
+  dplyr::select(ub_au1, ub_nue1, ub_8) |>
+  dplyr::rename("ALK: Unterrichtsbesuche sind  Schaustunden, die mit dem alltäglichen Unterrichten nichts zu tun haben." = ub_8,
+                "SAB: Die Unterrichtsbesuche lehren die Lehramtsanwärter_innen den ihnen bestmöglichen Unterricht vorzubereiten." = ub_nue1,
+                "SAB: Unterrichtsbesuche sind ein angemessenes Abbild des Unterrichts einer Lehramtsanwärter_in" = ub_au1)
 
 nrw_p |>
   gglikert(y_label_wrap = 26,
