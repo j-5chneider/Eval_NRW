@@ -789,7 +789,7 @@ nrw_p <- nrw |>
   pivot_wider(id_cols = c(id, kohorte, gruppe, mzp), names_from = "variable", values_from = "value") |>
   dplyr::select(ubnue_3, ubnue_4) |>
   dplyr::rename("Ich empfand die Unterrichtsbesuche hilfreich." = ubnue_3, 
-                "Die Unterrichtsbesuche haben mich gelehrt den mit bestmöglichem Unterricht vorzubereiten." = ubnue_4)
+                "Die Unterrichtsbesuche haben mich gelehrt den mir bestmöglichem Unterricht vorzubereiten." = ubnue_4)
 
 nrw_p |>
   gglikert(y_label_wrap = 26,
