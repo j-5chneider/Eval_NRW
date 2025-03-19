@@ -159,7 +159,9 @@ Auswahl der Skalen und wrangling der Daten.
 k4_laa_mzp1_clean <- k4_laa_mzp1 |>
   dplyr::select(seffic_01K4, bel_01K4, rfbe_01K4, 
                 # code_01_01K4,
-                ub_7_01K4, ub_8_01K4, ub_1_01K4
+                ub_7_01K4, ub_8_01K4, ub_1_01K4,
+                bel_01K4, aen_01K4, efft_01K4, entu_01K4, 
+                palk_01K4, seffic_01K4, rfbe_01K4
                 ) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
   # dplyr::rename(c(code = code_01)) |>
@@ -183,7 +185,7 @@ k4_laa_mzp2_clean <- k4_laa_mzp2 |>
                 zszf_qualalk, zszf_qualsab, zszf,
                 # code_02,
                 intal_kon1, intal_kon2, intal_kon3, intal_kon4, 
-                intal_tra1, intal_tra2, intal_tra3
+                intal_tra1, intal_tra2, intal_tra3, zszf_2, ubqual_ftb1
                 ) |>
   # dplyr::rename(c(code = code_02)) |>
   dplyr::mutate(intal_kon = rowMeans(data.frame(intal_kon1, intal_kon2, intal_kon3, intal_kon4), na.rm = T),
@@ -238,7 +240,7 @@ k4_alk_mzp1_clean <- k4_alk_mzp1 |>
                 # code_01_01K4,
                 AUNLT_01K4, AUNL_01K4, INNO_01K4,
                 soz_1_01K4, soz_2_01K4, soz_3_01K4,
-                ub_8_01K4
+                ub_8_01K4, zszf_2_01K4
                 ) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
   dplyr::rename(c(uebr = AUNLT,
@@ -290,7 +292,7 @@ k4_alk_mzp1_clean <- k4_alk_mzp1 |>
 k4_sab_mzp1_clean <- k4_sab_mzp1 |>
   dplyr::select(INNO_01K4, zszf_4_01K4:zszf_7_01K4, 
                 # code_01_01K4,
-                AUNLT_01K4, AUNL_01K4, INNO_01K4
+                AUNLT_01K4, AUNL_01K4, INNO_01K4, zszf_2_01K4
                 ) |>
   dplyr::rename_with(~ gsub("_01K4", "", .x, fixed = TRUE)) |> # Löschen von _01K4 in den Variablennamen
   dplyr::rename(c(uebr = AUNLT,
@@ -311,7 +313,8 @@ k4_sab_mzp2_clean <- k4_sab_mzp2 |>
                 neuans_4, koop_1, koop_2, neuans_2,
                 ub_son, ub_au8,
                 # code_01,
-                ub_au1, ub_nue1
+                ub_au1, ub_nue1, 
+                ubbeu_beu1, ubbeu_beu2, ubbeu_beu3, ubbeu_beu4, ubbeu_beu5, ubbeu_beu6
                 ) |>
   # dplyr::rename(c(code = code_01)) |>
   dplyr::mutate(id = 1:length(ubqual_ftb), # simply for pivot
@@ -412,12 +415,12 @@ nrw_p <- nrw |>
   ))
 
 ggplot(nrw_p, aes(x = value, y = variable, fill = variable)) +
-  geom_density_ridges(alpha = .8, bandwidth = 4) +
+  geom_density_ridges(alpha = .8, bandwidth = 4, scale = 1.4) +
   scale_x_continuous(limits = c(0, 100), expand = c(0,0), 
                      breaks = c(0, 20, 40, 60, 80, 100)) +
   scale_y_discrete(labels = c("ALK: Unterrichtsbesuch\n(Beginn des VD)",
                               "LAA: Unterrichtsbesuch",
-                              "LAA: Selbstständige Unterrichtsstunde\n(kein Unterrichtsbesuch)")) +
+                              "LAA: Selbstständige\nUnterrichtsstunde\n(kein Unterrichtsbesuch)")) +
   scale_fill_manual(values = c("#8e6d97",
                                "#693d75",
                                "#440d53")) +
@@ -435,7 +438,8 @@ ggplot(nrw_p, aes(x = value, y = variable, fill = variable)) +
   theme_minimal(base_size = 14) +
   theme(panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "none")
+        legend.position = "none",
+        text = element_text(size = 18))
 ```
 
 \
@@ -485,28 +489,6 @@ rm(nrw_p, table_ub, mod_ubzeit1, mod_ubzeit2, mod_ubvorB1X)
 ```
 
 
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ub2_son2"))
-
-ggplot(nrw_p, aes(x=value)) +
-  geom_bar(fill = "#440d53", alpha = .8) +
-  scale_x_continuous(breaks = c(1,2,3,4),
-                     labels = likert_labels) +
-  xlab("") +
-  ylab("Häufigkeit") +
-  labs(title = "Rückblickend waren die Unterrichtsbesuche",
-       subtitle = "nicht so schlimm, wie ich erwartet habe.",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
-
-rm(nrw_p)
-```
-
 
 ```{r}
 #| fig-height: 3
@@ -538,28 +520,6 @@ rm(nrw_p)
 ```
 
 
-
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ub2_son1"))
-
-ggplot(nrw_p, aes(x=value)) +
-  geom_bar(fill = "#440d53", alpha = .8) +
-  scale_x_continuous(breaks = c(1,2,3,4),
-                     labels = likert_labels) +
-  xlab("") +
-  ylab("Häufigkeit") +
-  labs(title = "Die Planung macht den Unterrichtsbesuch",
-       subtitle = "zur Belastung, nicht die Situation selbst.",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
-
-rm(nrw_p)
-```
 
 
 ```{r}
@@ -593,34 +553,6 @@ rm(nrw_p)
 ```
 
 
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ubsorg_1", "ubsorg_2", "ubsorg_3", "ubsorg_4"))
-
-ggplot(nrw_p, aes(x=variable, y = value)) +
-  stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
-  stat_summary(linewidth = 1, geom = "errorbar", width = .25, color = "#440d53") +
-  # stat_summary(geom = "linerange", fun.data = mean_sdl, 
-  #              fun.args = list(mult = 1), color = "#440d53", size = 2) +
-  scale_x_discrete(labels = c("Schule", "Seminar", "andere\nLAA", "Medien")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Große Sorgen zu Beginn des VD",
-       subtitle = "aufgrund der Darstellung des UB durch ...",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
-
-rm(nrw_p)
-```
-
-
 **Invers kodiert aufgrund der umgedrehten Antwortkategorien**
 
 ```{r}
@@ -628,14 +560,15 @@ nrw_p <- nrw |>
   dplyr::filter(variable %in% c("ubsorg_1", "ubsorg_2", "ubsorg_3", "ubsorg_4")) |>
   dplyr::mutate(value = 5 - value)
 
-ggplot(nrw_p, aes(x=variable, y = value)) +
+ggplot(nrw_p, aes(y=variable, x = value)) +
   stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
   stat_summary(linewidth = 1, geom = "errorbar", width = .25, color = "#440d53") +
+  geom_vline(xintercept = 2.5, color = "red", alpha = .4, size = 1.5) +
   # stat_summary(geom = "linerange", fun.data = mean_sdl, 
   #              fun.args = list(mult = 1), color = "#440d53", size = 2) +
-  scale_x_discrete(labels = c("Schule", "Seminar", "andere\nLAA", "Medien")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
+  scale_y_discrete(labels = c("Schule", "Seminar", "andere\nLAA", "Medien")) +
+  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
+  coord_cartesian(xlim=c(1,4.2),
                   expand = F) +
   xlab("") +
   ylab("") +
@@ -643,10 +576,11 @@ ggplot(nrw_p, aes(x=variable, y = value)) +
        subtitle = "aufgrund der Darstellung des UB durch ...",
        caption = "") +
   theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
+  theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "none")
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none",
+        text = element_text(size = 18))
 
 rm(nrw_p)
 ```
@@ -704,29 +638,6 @@ nrw_p <- nrw |>
                                              "Unterrichtsbesuche")))
 
 
-ggplot(nrw_p, aes(x=variable, y = value)) +
-  stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
-  stat_summary(linewidth = 1, geom = "errorbar", width = .25, color = "#440d53") +
-  geom_hline(yintercept = 2.5, color = "red", alpha = .4, size = 1.5) +
-  # scale_y_discrete() +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = c("nicht\nbelastend", "", "", "sehr\nbelastend"), expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Belastungsquellen ",
-       subtitle = "",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        legend.position = "none",
-        # axis.text.y = element_text(margin = margin(t = 20)),
-        axis.text.x=element_text(angle = 70, hjust = 1)
-        )
-
-
 ggplot(nrw_p, aes(x=value, y = variable)) +
   stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
   stat_summary(linewidth = 1, geom = "errorbar", width = .25, color = "#440d53") +
@@ -747,32 +658,6 @@ ggplot(nrw_p, aes(x=value, y = variable)) +
         legend.position = "none",
         axis.text.y = element_text(margin = margin(t = 20))
         )
-
-rm(nrw_p)
-```
-
-
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ubnue_3", "ubnue_4"))
-
-ggplot(nrw_p, aes(x=value, y = variable)) +
-  stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
-  scale_y_discrete(labels = c("Ich empfand die\nUnterrichtsbesuche hilfreich.", 
-                              "Die Unterrichtsbesuche haben mich\ngelehrt den mir bestmöglichem\nUnterricht vorzubereiten.")) +
-  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(xlim=c(1,4.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Nützlichkeit",
-       subtitle = "",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.y = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
 
 rm(nrw_p)
 ```
@@ -811,59 +696,34 @@ rm(nrw_p)
 ### Bewertung vs. Ausbildung
 ```{r}
 nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ub1_au3a", "ub1_au4a", "ub1_au3b", "ub1_au4b"))
+  dplyr::filter(variable %in% c("ub1_au3a", "ub1_au4a", "ub1_au3b", "ub1_au4b")) |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  pivot_wider(id_cols = c(id, kohorte, gruppe, mzp), names_from = "variable", values_from = "value") |>
+  dplyr::select(ub1_au3a, ub1_au3b, ub1_au4a, ub1_au4b) |>
+  dplyr::rename("fühle mich von SAB kontrolliert" = ub1_au3a,
+                "fühle mich von SAB individuell unterstützt" = ub1_au4a, 
+                "fühle mich von ALK kontrolliert" = ub1_au3b, 
+                "fühle mich von ALK individuell unterstützt" = ub1_au4b)
 
-ggplot(nrw_p, aes(x=value, y = variable)) +
-  stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
-  stat_summary(linewidth = 1, geom = "errorbar", width = .25, color = "#440d53") +
-  geom_vline(xintercept = 2.5, color = "red", alpha = .4, size = 1.5) +
-  scale_y_discrete(labels = c("fühle mich von\nSAB kontrolliert",
-                              "fühle mich von\nALK kontrolliert",
-                              "fühle mich von\nSAB individuell unterstützt",
-                              "fühle mich von\nALK individuell unterstützt")) +
-  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(xlim=c(1,4.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Gefühl während der Unterrichtsbesuche",
-       subtitle = "kontrolliert vs. individuell gefördert zu werden",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.y = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
-
+nrw_p |>
+  gglikert(y_label_wrap = 26,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 18))
 rm(nrw_p)
 ```
 
 
-
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("ub1_au1", "ub1_au2"))
-
-ggplot(nrw_p, aes(x=value, y = variable)) +
-  stat_summary(geom = "col", fun = mean, fill = "#440d53", alpha = .8) +
-  scale_y_discrete(labels = c("UB waren ein angemessenes\nAbbild meines Unterrichts",
-                              "Habe mich an den Bewertungs-\nmaßstäben der SAB gerichtet")) +
-  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(xlim=c(1,4.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Unterrichtsbesuche",
-       subtitle = "",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.y = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
-
-rm(nrw_p)
-```
 
 ```{r}
 #| fig-height: 3
@@ -928,7 +788,6 @@ rm(nrw_p)
 **Perspektive der SAB & ALK:**
 
 ```{r}
-
 nrw_p <- nrw |>
   dplyr::filter(variable %in% c("ub_au1", "ub_nue1", "ub_8") & gruppe != "laa") |>
   dplyr::mutate(value = factor(value,
@@ -940,11 +799,11 @@ nrw_p <- nrw |>
   pivot_wider(id_cols = c(id, kohorte, gruppe, mzp), names_from = "variable", values_from = "value") |>
   dplyr::select(ub_au1, ub_nue1, ub_8) |>
   dplyr::rename("ALK: Unterrichtsbesuche sind  Schaustunden, die mit dem alltäglichen Unterrichten nichts zu tun haben." = ub_8,
-                "SAB: Die Unterrichtsbesuche lehren die Lehramtsanwärter_innen den ihnen bestmöglichen Unterricht vorzubereiten." = ub_nue1,
-                "SAB: Unterrichtsbesuche sind ein angemessenes Abbild des Unterrichts einer Lehramtsanwärter_in" = ub_au1)
+                "SAB: Die Unterrichtsbesuche lehren die Lehramts- anwärter_innen den ihnen bestmöglichen Unterricht vorzubereiten." = ub_nue1,
+                "SAB: Unterrichtsbesuche sind ein angemessenes Abbild des Unterrichts einer Lehramts- anwärter_in" = ub_au1)
 
 nrw_p |>
-  gglikert(y_label_wrap = 26,
+  gglikert(y_label_wrap = 32,
            symmetric = TRUE,
            add_labels = F,
            width = .6) +
@@ -958,6 +817,42 @@ rm(nrw_p)
 ```
 
 
+```{r}
+#| fig-height: 8
+
+nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("ubbeu_beu1", "ubbeu_beu2", "ubbeu_beu3", 
+                                "ubbeu_beu4", "ubbeu_beu5", "ubbeu_beu6") & gruppe == "sab") |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  pivot_wider(id_cols = c(id, kohorte, gruppe, mzp), names_from = "variable", values_from = "value") |>
+  dplyr::select(ubbeu_beu1, ubbeu_beu2, ubbeu_beu3, ubbeu_beu4, ubbeu_beu5, ubbeu_beu6) |>
+  dplyr::rename("Ich achte darauf, die Lehramtsanwärter_innen nicht mehrmals in derselben Lerngruppe zu besuchen." = ubbeu_beu1, 
+                "Mir ist es wichtig, dass die Lehramtsanwärter_innen fünf Unterrichtsbesuche pro Fach zeigen." = ubbeu_beu2, 
+                "Für eine gute Bewertung erwarte ich eine genaue Umsetzung der vorherigen Planung." = ubbeu_beu3,
+                "Ich benote jeden Unterrichtsbesuch." = ubbeu_beu4, 
+                "Die in der Ordnung des Vorbereitungsdienstes und der Staatsprüfung (OVP) festgelegten Standards stehen bei der Bewertung der Unterrichtsbesuche im Vordergrund." = ubbeu_beu5, 
+                "Der Referenzrahmen Schulqualität (RRSQ) steht bei der Bewertung der Unterrichtsbesuche im Vordergrund." = ubbeu_beu6)
+
+nrw_p |>
+  gglikert(y_label_wrap = 36,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 16))
+
+rm(nrw_p)
+```
+
+
 
 ### Kriterien für das Feedback
 
@@ -966,17 +861,17 @@ rm(nrw_p)
 nrw_p <- nrw |>
   dplyr::filter(variable %in% c("ubqual_ftb", "ubqual_ebf", "ubqual_ibno", "ubqual_lob"))
 
-ggplot(nrw_p, aes(x=variable, y = value, group = gruppe, fill = gruppe, color = gruppe)) +
+ggplot(nrw_p, aes(y=variable, x = value, group = gruppe, fill = gruppe, color = gruppe)) +
   stat_summary(geom = "col", fun = mean, alpha = .8, position = position_dodge()) +
   stat_summary(linewidth = 1, geom = "errorbar", 
                width = .25, position = position_dodge(width = .9)) +
-  geom_hline(yintercept = 2.5, color = "red", alpha = .4, size = 1.5) +
-  scale_x_discrete(labels = c("Entwicklungs-\nbezogenes\nFeedback", 
+  geom_vline(xintercept = 2.5, color = "red", alpha = .4, size = 1.5) +
+  scale_y_discrete(labels = c("Entwicklungs-\nbezogenes\nFeedback", 
                               "Fairness und\nTransparenz", 
                               "Individuelle\nBezugsnorm", 
                               "Lob")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
+  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
+  coord_cartesian(xlim=c(1,4.2),
                   expand = F) +
   scale_fill_manual(values = c("#440d53", "#34608d"), name = "", labels = c("LAA", "SAB")) +
   scale_color_manual(values = c("#440d53", "#34608d"), name = "", labels = c("LAA", "SAB")) +
@@ -986,51 +881,24 @@ ggplot(nrw_p, aes(x=variable, y = value, group = gruppe, fill = gruppe, color = 
        subtitle = "Qualität des Feedbacks",
        caption = "") +
   theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
+  theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
+        panel.grid.minor.x = element_blank(),
+        legend.position = "bottom",
+        text = element_text(size = 18))
 
 rm(nrw_p)
 ```
 
 
-
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("seffic", "bel"))
-
-ggplot(nrw_p, aes(x = mzp, y = value, group = variable, color = variable)) +
-  stat_summary(geom = "line", fun = mean, alpha = 0.8, linewidth = 2) +  # Line for mean values
-  stat_summary(geom = "point", fun = mean, size = 4) +
-  scale_x_discrete(labels = c("Beginn\nVD", 
-                              "Ende\nVD")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels) +
-  coord_cartesian(ylim = c(1,4.2),
-                  xlim = c(0.8, 2.2),
-                  expand = F) +
-  scale_color_manual(values = c("#34608d", "#37b877"),
-                     labels = c("Belastung", "Selbstwirksamkeit")) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Selbstwirksamkeit und Belastung",
-       subtitle = "im Verlauf des VD",
-       caption = "",
-       color = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
-
-rm(nrw_p)
-```
 
 ## Bewertung
 
 ### Transparenz
 
 ```{r}
+#| fig-height: 6
+
 nrw_p <- nrw |>
   dplyr::filter(variable %in% c("bew_bs2", "bew_bs1", "bew_bs3", "bew_lzb1", "bew_lzb2")) |>
   dplyr::mutate(variable = factor(variable, 
@@ -1040,6 +908,7 @@ ggplot(nrw_p, aes(x=value, y = variable, group = gruppe, fill = gruppe, color = 
   stat_summary(geom = "col", fun = mean, alpha = .8, position = position_dodge()) +
   stat_summary(linewidth = 1, geom = "errorbar", 
                width = .25, position = position_dodge(width = .9)) +
+  geom_vline(xintercept = 2.5, color = "red", alpha = .4, size = 1.5) +
   scale_y_discrete(labels = c("Bewertung erfolgt nach subjektiven\nMaßstäben der Prüfungskommission.",
                               "Entwicklung fließt nicht angemessen\nin die Benotung des VD",
                               "Ergebnis der Staatsprüfung wird nach\ntransparenten Kriterien ermittelt",
@@ -1063,43 +932,45 @@ ggplot(nrw_p, aes(x=value, y = variable, group = gruppe, fill = gruppe, color = 
   theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
+        legend.position = "bottom",
+        text = element_text(size = 18))
 
 rm(nrw_p)
+```
+
+
+```{r}
+#| fig-height: 3
+
+nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("ubqual_ftb1")) |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  dplyr::select(value) |>
+  dplyr::rename("Ich konnte die Einschätzungen meiner Ausbilder_innen in den Nachbesprechungen immer nachvollziehen." = value)
+
+nrw_p |>
+  gglikert(y_label_wrap = 26,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  # scale_fill_manual(values = c("#00306f", "#565c6d", "#b0a473", "#f0d853")) +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 18))
+
+rm(nrw_p)
+
 ```
 
 
 ### Reflexionselement der Staatsprüfung
-
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("bew_rap", "epg_epg34l", "lg_13l", "ubnue_1")) |>
-  dplyr::mutate(variable = factor(variable,
-                                  levels = c("ubnue_1", "lg_13l", "epg_epg34l", "bew_rap")))
-
-ggplot(nrw_p, aes(x=value, y = variable)) +
-  stat_summary(geom = "col", fun = mean, fill = c("#8e6d97", "#8e6d97", "#8e6d97", "#440d53"), alpha = .8) +
-  scale_y_discrete(labels = c("Unterrichtsbesuche\nals Reflexionsmöglichkeit",
-    "Lerngruppe\nals Reflexionsmöglichkeit",
-    "Perspektivgespräch\nals Reflexionsmöglichkeit",
-    "Reflexionsleistung im Kolloquium\nals sinnvolle Ergänzung")) +
-  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(xlim=c(1,4.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Reflexion",
-       subtitle = "",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.y = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
-
-rm(nrw_p)
-```
-
 
 ```{r}
 nrw_p <- nrw |>
@@ -1133,67 +1004,15 @@ rm(nrw_p)
 
 
 
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("rfbe"))
-
-ggplot(nrw_p, aes(x = mzp, y = value, group = 1)) +
-  stat_summary(geom = "line", fun = mean, alpha = 0.8, 
-               linewidth = 2, color = "#34608d") +
-  stat_summary(geom = "point", fun = mean, size = 4, color = "#34608d") +
-  scale_x_discrete(labels = c("Beginn\nVD", 
-                              "Ende\nVD")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels) +
-  coord_cartesian(ylim = c(1,4.2),
-                  xlim = c(0.8, 2.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "Selbstregulative Fähigkeit: Reflexion",
-       subtitle = "im Verlauf des VD",
-       caption = "",
-       color = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
-
-rm(nrw_p)
-```
-
-
 ## Qualifikation des Ausbildungspersonals
 
 ### Wahrgenommene fachliche Ausbildung durch die LAA
 
-```{r}
-nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("zszf_qualalk", "zszf_qualsab"))
-
-ggplot(nrw_p, aes(x=variable, y = value)) +
-  stat_summary(geom = "col", fun = mean, alpha = .8, 
-               position = position_dodge(), fill = "#440d53") +
-  scale_x_discrete(labels = c("ALK",
-                              "SAB")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
-                  expand = F) +
-  xlab("") +
-  ylab("") +
-  labs(title = "... waren fachlich gut ausgebildet.",
-       subtitle = "",
-       caption = "") +
-  theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
-
-rm(nrw_p)
-```
+**...waren fachlich gut ausgebildet.**
 
 ```{r}
+#| fig-height: 3.5
+
 nrw_p <- nrw |>
   dplyr::filter(variable %in% c("zszf_qualalk", "zszf_qualsab")) |>
   dplyr::mutate(value = factor(value,
@@ -1225,17 +1044,20 @@ rm(nrw_p)
 ### Selbstwirksamkeitserwartungen der SAB
 
 ```{r}
+#| fig-height: 4
+
 nrw_p <- nrw |>
   dplyr::filter(variable %in% c("seffsab_pp", "seffsab_pr"))
 
-ggplot(nrw_p, aes(x=variable, y = value)) +
-  stat_summary(geom = "col", fun = mean, alpha = .8, 
-               position = position_dodge(), fill = "#440d53") +
-  stat_summary(linewidth = 1, geom = "errorbar", width = .25, color = "#440d53") +
-  scale_x_discrete(labels = c("Pedagogical\nPractices",
+ggplot(nrw_p, aes(y=variable, x = value)) +
+  stat_summary(geom = "col", fun = mean, alpha = .8, fill = "#34608d",
+               width = .75) +
+  stat_summary(linewidth = 1, geom = "errorbar", width = .25, color = "#34608d") +
+  geom_vline(xintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
+  scale_y_discrete(labels = c("Pedagogical\nPractices",
                               "Professional\nRelationships")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
+  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels) +
+  coord_cartesian(xlim=c(1,4.2),
                   expand = F) +
   xlab("") +
   ylab("") +
@@ -1243,10 +1065,11 @@ ggplot(nrw_p, aes(x=variable, y = value)) +
        subtitle = "der SAB",
        caption = "") +
   theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
+  theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
+        panel.grid.minor.x = element_blank(),
+        legend.position = "bottom",
+        text = element_text(size = 18))
 
 rm(nrw_p)
 ```
@@ -1263,28 +1086,30 @@ nrw_p <- nrw %>%
                   TRUE ~ variable
                 ))
 
-ggplot(nrw_p, aes(x=variable_inhalt, y = value, 
+ggplot(nrw_p, aes(y=variable_inhalt, x = value, 
                   group = gruppe, fill = gruppe, color = gruppe)) +
   stat_summary(geom = "col", fun = mean, alpha = .8, position = position_dodge()) +
   stat_summary(linewidth = 1, geom = "errorbar", 
                width = .25, position = position_dodge(width = .9)) +
-  scale_x_discrete(labels = c("Konstruktivistisch",
+  geom_vline(xintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
+  scale_y_discrete(labels = c("Konstruktivistisch",
                               "Transmissiv")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
-  coord_cartesian(ylim=c(1,4.2),
+  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
+  coord_cartesian(xlim=c(1,4.2),
                   expand = F) +
   scale_fill_manual(values = c("#440d53", "#37b877", "#34608d"), name = "", labels = c("LAA (über ALK)", "ALK", "SAB")) +
   scale_color_manual(values = c("#440d53", "#37b877", "#34608d"), name = "", labels = c("LAA (über ALK)", "ALK", "SAB")) +
   xlab("") +
   ylab("") +
-  labs(title = "Überzeugungen über das Lernen und Lehren",
-       subtitle = "",
+  labs(title = "Überzeugungen ",
+       subtitle = "über das Lernen und Lehren",
        caption = "") +
   theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
+  theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "bottom")
+        panel.grid.minor.x = element_blank(),
+        legend.position = "bottom",
+        text = element_text(size = 18))
 
 rm(nrw_p)
 ```
@@ -1298,18 +1123,18 @@ rm(nrw_p)
 nrw_p <- nrw |>
   dplyr::filter(variable %in% c("zszf"))
 
-ggplot(nrw_p, aes(x=gruppe, y = value, fill = gruppe, color = gruppe)) +
+ggplot(nrw_p, aes(y=gruppe, x = value, fill = gruppe, color = gruppe)) +
   stat_summary(geom = "col", fun = mean, alpha = .8, 
-               position = position_dodge()) +
+               width = .8) +
   stat_summary(linewidth = 1, geom = "errorbar", width = .25) +
-  geom_hline(yintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
-  scale_x_discrete(labels = c("LAA",
+  geom_vline(xintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
+  scale_y_discrete(labels = c("LAA",
                               "ALK",
                               "SAB")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
+  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
   scale_fill_manual(values = c("#440d53", "#37b877", "#34608d"), name = "", labels = c("LAA", "ALK", "SAB")) +
   scale_color_manual(values = c("#440d53", "#37b877", "#34608d"), name = "", labels = c("LAA", "ALK", "SAB")) +
-  coord_cartesian(ylim=c(1,4.2),
+  coord_cartesian(xlim=c(1,4.2),
                   expand = F) +
   xlab("") +
   ylab("") +
@@ -1317,31 +1142,68 @@ ggplot(nrw_p, aes(x=gruppe, y = value, fill = gruppe, color = gruppe)) +
        subtitle = "Aus Sicht der LAA (Ende VD), ALK (Beginn VD), SAB (Beginn VD)",
        caption = "") +
   theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
+  theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "none")
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none",
+        text = element_text(size = 18))
 
 rm(nrw_p)
 ```
 
-### Innovationsbereitschaft
+\
+
+**Meine Schule hat mit dem Zentrum für schulpraktische Lehrerausbildung gut zusammen gearbeitet.**
 
 ```{r}
 nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("zszf_2")) |>
+  dplyr::mutate(value = factor(value,
+                               levels = c(1,2,3,4),
+                               labels = c("trifft nicht zu",
+                                          " ",
+                                          "  ",
+                                          "trifft zu"))) |>
+  pivot_wider(id_cols = c(id, kohorte, variable, mzp), names_from = "gruppe", values_from = "value") |>
+  dplyr::select(laa, sab, alk) |>
+  dplyr::rename("LAA" = laa,
+                "SAB" = sab,
+                "ALK" = alk)
+
+nrw_p |>
+  gglikert(y_label_wrap = 26,
+           symmetric = TRUE,
+           add_labels = F,
+           width = .6) +
+  geom_vline(xintercept = 0, color = "lightgrey") +
+  scale_fill_manual(values = c("#79042F", "#C77191", "#00CCA9", "#00826C")) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 18))
+
+rm(nrw_p)
+```
+
+
+### Innovationsbereitschaft
+
+```{r}
+#| fig-height: 4
+
+nrw_p <- nrw |>
   dplyr::filter(variable %in% c("INNO"))
 
-ggplot(nrw_p, aes(x=gruppe, y = value, fill = gruppe, group = gruppe, color = gruppe)) +
-  stat_summary(geom = "col", fun = mean, alpha = .8) +
+ggplot(nrw_p, aes(y=gruppe, x = value, fill = gruppe, group = gruppe, color = gruppe)) +
+  stat_summary(geom = "col", fun = mean, alpha = .8, width = .8) +
   stat_summary(linewidth = 1, geom = "errorbar", 
                width = .25) +
-  geom_hline(yintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
-  scale_x_discrete(labels = c("der Schule\n(ALK)",
+  geom_vline(xintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
+  scale_y_discrete(labels = c("der Schule\n(ALK)",
                               "der Seminargestaltung\n(SAB)")) +
-  scale_y_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
+  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
   scale_fill_manual(values = c("#37b877", "#34608d"), name = "", labels = c("ALK", "SAB")) +
   scale_color_manual(values = c("#37b877", "#34608d"), name = "", labels = c("ALK", "SAB")) +
-  coord_cartesian(ylim=c(1,4.2),
+  coord_cartesian(xlim=c(1,4.2),
                   expand = F) +
   xlab("") +
   ylab("") +
@@ -1349,10 +1211,11 @@ ggplot(nrw_p, aes(x=gruppe, y = value, fill = gruppe, group = gruppe, color = gr
        subtitle = "",
        caption = "") +
   theme_minimal(base_size = 14) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
+  theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank(),
-        legend.position = "none")
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none",
+        text = element_text(size = 18))
 
 rm(nrw_p)
 ```
@@ -1420,6 +1283,44 @@ nrw_p |>
 rm(nrw_p)
 ```
 
+
+
+## Eingangsvoraussetzungen LAA
+
+```{r}
+nrw_p <- nrw |>
+  dplyr::filter(variable %in% c("bel", "aen", "efft", "entu", "palk", "seffic", "rfbe") &
+                  gruppe == "laa" & mzp == "1")
+
+ggplot(nrw_p, aes(y=variable, x = value)) +
+  stat_summary(geom = "col", fun = mean, alpha = .8, fill = "#440d53") +
+  stat_summary(linewidth = 1, geom = "errorbar", 
+               width = .25, color = "#440d53") +
+  geom_vline(xintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
+  scale_y_discrete(labels = c("Arbeitsengagement",
+                              "Emotionale Erschöpfung",
+                              "Anstrengungsbereitschaft",
+                              "Enthusiasmus für\ndas Unterrichten",
+                              "Lernzielorientierung",
+                              "Reflexionsbereitschaft",
+                              "Lehrerselbstwirksamkeit")) +
+  scale_x_continuous(breaks = c(1,2,3,4), labels = likert_labels, expand = c(0,0)) +
+  coord_cartesian(xlim=c(1,4.2),
+                  expand = F) +
+  xlab("") +
+  ylab("") +
+  labs(title = "",
+       subtitle = "",
+       caption = "") +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none",
+        text = element_text(size = 18))
+
+rm(nrw_p)
+```
 
 
 
