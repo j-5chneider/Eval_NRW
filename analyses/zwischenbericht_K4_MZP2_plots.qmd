@@ -1302,6 +1302,7 @@ ggplot(nrw_p, aes(x=gruppe, y = value, fill = gruppe, color = gruppe)) +
   stat_summary(geom = "col", fun = mean, alpha = .8, 
                position = position_dodge()) +
   stat_summary(linewidth = 1, geom = "errorbar", width = .25) +
+  geom_hline(yintercept = 2.5, color = "red", alpha = .5, size = 1.5) +
   scale_x_discrete(labels = c("LAA",
                               "ALK",
                               "SAB")) +
@@ -1392,7 +1393,7 @@ rm(nrw_p)
 
 ```{r}
 nrw_p <- nrw |>
-  dplyr::filter(variable %in% c("soz_1", "soz_2", "soz_3")) |>
+  dplyr::filter(variable %in% c("soz_1", "soz_2", "soz_3") & gruppe == "alk") |>
   dplyr::mutate(value = factor(value,
                                levels = c(1,2,3,4),
                                labels = c("trifft nicht zu",
